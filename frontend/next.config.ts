@@ -1,29 +1,8 @@
-/** @type {import('next-sitemap').IConfig} */
-const config = {
-  siteUrl: "https://faharidairies.co.ke",
-  generateRobotsTxt: true, // generates robots.txt file
-  sitemapSize: 7000,
-  changefreq: "daily",
-  priority: 0.7,
+//frontend\next.config.ts
+import type { NextConfig } from "next";
 
-  // 🚫 exclude private/admin routes
-  exclude: [
-    "/admin/*",
-    "/api/*",
-  ],
-
-  robotsTxtOptions: {
-    policies: [
-      {
-        userAgent: "*",
-        allow: "/",
-        disallow: ["/admin", "/api"],
-      },
-    ],
-    additionalSitemaps: [
-      "https://faharidairies.co.ke/sitemap.xml",
-    ],
-  },
+const nextConfig: NextConfig = {
+  /* config options here */
 };
 
-export default config;
+export default nextConfig;
