@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://faharidairies.co.ke
+
+# Sitemaps
+Sitemap: https://faharidairies.co.ke/sitemap.xml
