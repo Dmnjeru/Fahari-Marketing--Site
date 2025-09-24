@@ -1,0 +1,9 @@
+{
+  "/admin/blogs/page": "app/admin/blogs/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/blog/page": "app/blog/page.js",
+  "/careers/page": "app/careers/page.js",
+  "/contact/page": "app/contact/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/page": "app/page.js"
+}
