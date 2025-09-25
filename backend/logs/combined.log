@@ -1132,3 +1132,15 @@
 {"err":"SMTP verification failed in production: getaddrinfo ENOTFOUND mail.faharidairies.co.ke","id":"68d37d3654b3695c00cc7533","level":"error","message":"❌ Failed to send contact email","timestamp":"2025-09-24 08:10:24","to":"info@faharidairies.co.ke","type":"contact"}
 {"id":"68d37d3654b3695c00cc7533","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-09-24 08:10:24"}
 {"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-09-24 08:18:28"}
+{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-09-24 20:18:04"}
+{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-09-24 20:18:05"}
+{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-09-24 20:18:05"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-09-24 20:18:05"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-09-24 20:18:05"}
+{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-09-24 20:18:05"}
+{"level":"warn","message":"uploadFileToR2 failed (continuing): R2 not initialized. Call initR2() during server startup.","timestamp":"2025-09-24 20:19:22"}
+{"level":"warn","message":"Duplicate application prevented: {\"job\":\"68d2b8899cc8083995191267\",\"email\":\"njerudennis86@gmail.com\"}","timestamp":"2025-09-24 20:19:22"}
+{"level":"warn","message":"uploadFileToR2 failed (continuing): R2 not initialized. Call initR2() during server startup.","timestamp":"2025-09-24 20:19:29"}
+{"level":"info","message":"📧 Email sent: New Application — Production (Dennis Martin njeru) → careers@faharidairies.co.ke (id=<b156f7ad-c69a-dca7-740c-88dd6b56b8bf@faharidairies.co.ke>)","timestamp":"2025-09-24 20:19:30"}
+{"level":"info","message":"New application created: 68d42821b000e12f6c15d7e1 for job Production","timestamp":"2025-09-24 20:19:30"}
+{"level":"info","message":"📧 Email sent: Application Received — Production → d86@gmail.com (id=<e0304901-9435-7cf1-d0b0-e70f8c77863c@faharidairies.co.ke>)","timestamp":"2025-09-24 20:19:34"}
