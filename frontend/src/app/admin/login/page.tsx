@@ -4,12 +4,11 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import AdminLayoutClient from "../AdminLayoutClient";
 
 // Use NEXT_PUBLIC_API_URL (matches your .env.production)
-// Example: NEXT_PUBLIC_API_URL=https://api.faharidairies.co.ke
 const BACKEND_URL =
-  (process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "")) || "http://localhost:5000";
+  (process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "")) ||
+  "http://localhost:5000";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -57,52 +56,50 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <AdminLayoutClient>
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-        <form
-          onSubmit={handleLogin}
-          className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md"
-          aria-label="Admin login form"
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+      <form
+        onSubmit={handleLogin}
+        className="bg-white shadow-lg rounded-xl p-8 w-full max-w-md"
+        aria-label="Admin login form"
+      >
+        <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
+
+        {error && (
+          <div className="mb-4 text-sm text-red-700 bg-red-100 p-2 rounded">
+            {error}
+          </div>
+        )}
+
+        <label className="block mb-2 font-medium">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-2 border rounded mb-4"
+          required
+          autoComplete="username"
+        />
+
+        <label className="block mb-2 font-medium">Password</label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border rounded mb-6"
+          required
+          autoComplete="current-password"
+        />
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full bg-blue-600 text-white p-2 rounded ${
+            loading ? "opacity-60 cursor-not-allowed" : "hover:bg-blue-700"
+          }`}
         >
-          <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
-
-          {error && (
-            <div className="mb-4 text-sm text-red-700 bg-red-100 p-2 rounded">
-              {error}
-            </div>
-          )}
-
-          <label className="block mb-2 font-medium">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full p-2 border rounded mb-4"
-            required
-            autoComplete="username"
-          />
-
-          <label className="block mb-2 font-medium">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 border rounded mb-6"
-            required
-            autoComplete="current-password"
-          />
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full bg-blue-600 text-white p-2 rounded ${
-              loading ? "opacity-60 cursor-not-allowed" : "hover:bg-blue-700"
-            }`}
-          >
-            {loading ? "Logging in…" : "Login"}
-          </button>
-        </form>
-      </div>
-    </AdminLayoutClient>
+          {loading ? "Logging in…" : "Login"}
+        </button>
+      </form>
+    </div>
   );
 }

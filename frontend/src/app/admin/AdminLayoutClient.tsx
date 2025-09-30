@@ -1,4 +1,4 @@
-// frontend/src/app/admin/AdminLayoutClient.tsx
+//frontend\src\app\admin\AdminLayoutClient.tsx
 "use client";
 
 import React, { ReactNode, useState } from "react";
@@ -28,8 +28,13 @@ export default function AdminLayoutClient({
     { label: "Jobs", href: "/admin/jobs" },
     { label: "Applications", href: "/admin/applications" },
     { label: "Blogs", href: "/admin/blogs" },
-    { label: "Pages", href: "/admin/pages" }, // added PagesManagement route
+    { label: "Pages", href: "/admin/pages" },
   ];
+
+  // 🔑 If on login page → don’t show sidebar or shell
+  if (pathname === "/admin/login") {
+    return <>{children}</>;
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
