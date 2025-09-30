@@ -9,21 +9,26 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 interface AdminLayoutClientProps {
   children: ReactNode;
-  onLogout?: () => void;
+  onLogout?: () => void; // explicitly for admin logout only
 }
 
-export default function AdminLayoutClient({ children, onLogout }: AdminLayoutClientProps) {
+export default function AdminLayoutClient({
+  children,
+  onLogout,
+}: AdminLayoutClientProps) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // React Query client
+  // React Query client (scoped here)
   const [queryClient] = useState(() => new QueryClient());
 
+  // ✅ Navigation restricted to admin side only
   const navItems = [
     { label: "Dashboard", href: "/admin" },
     { label: "Jobs", href: "/admin/jobs" },
     { label: "Applications", href: "/admin/applications" },
     { label: "Blogs", href: "/admin/blogs" },
+    { label: "Pages", href: "/admin/pages" }, // added PagesManagement route
   ];
 
   return (
@@ -48,7 +53,11 @@ export default function AdminLayoutClient({ children, onLogout }: AdminLayoutCli
                   key={item.href}
                   href={item.href}
                   className={`flex items-center px-4 py-2 rounded-lg transition-colors 
-                    ${active ? "bg-violet-100 font-semibold text-violet-700" : "hover:bg-gray-100"}`}
+                    ${
+                      active
+                        ? "bg-violet-100 font-semibold text-violet-700"
+                        : "hover:bg-gray-100"
+                    }`}
                 >
                   {item.label}
                 </Link>
