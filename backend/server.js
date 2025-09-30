@@ -196,6 +196,22 @@ app.use(morgan(process.env.NODE_ENV === "development" ? "dev" : "combined"));
 
 // static files
 app.use(express.static(join(__dirname, "public")));
+// Add **before** this line
+// app.use((req, res) => { ... 404 fallback ... });
+app.get("/api/test-email", async (req, res) => {
+  try {
+    await sendEmail({
+      to: process.env.FROM_EMAIL || "youremail@example.com",
+      subject: "📧 Fahari Test Email",
+      text: "This is a test email from Fahari Marketing Site backend.",
+      html: "<h2>This is a test email from Fahari Marketing Site backend.</h2>",
+    });
+    return res.status(200).json({ success: true, message: "Test email sent!" });
+  } catch (err) {
+    console.error("Test email failed:", err);
+    return res.status(500).json({ success: false, message: err.message || String(err) });
+  }
+});
 
 // -------------------------------
 // Routes (mount everything, including blogs)
@@ -304,23 +320,6 @@ process.on("uncaughtException", (err) => {
 process.on("unhandledRejection", (reason) => {
   logger.error("Unhandled Rejection:", reason);
   // allow process manager to restart
-});
-// -------------------------------
-// Test email route
-// -------------------------------
-app.get("/api/test-email", async (req, res) => {
-  try {
-    await sendEmail({
-      to: process.env.CONTACT_RECEIVER || "info@faharidairies.co.ke",
-      subject: "📧 Test Email from Fahari Backend",
-      text: "This is a test email from your backend.",
-      html: "<h2>This is a test email from your backend</h2>",
-    });
-    res.status(200).json({ success: true, message: "Test email sent!" });
-  } catch (err) {
-    logger.error("❌ Test email failed:", err?.message ?? err);
-    res.status(500).json({ success: false, message: "Test email failed", error: err?.message });
-  }
 });
 
 export default app;
