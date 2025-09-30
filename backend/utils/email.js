@@ -1,9 +1,8 @@
+// backend/utils/email.js
 import nodemailer from "nodemailer";
 import logger from "../config/logger.js";
-import dotenv from "dotenv";
 
-dotenv.config();
-
+// ----------------- Env / Mode -----------------
 const {
   SMTP_HOST,
   SMTP_PORT,
@@ -18,38 +17,29 @@ const {
 const isProd = NODE_ENV === "production";
 const isDev = !isProd;
 
-let transporter = null;
-let smtpReady = false;
+// ----------------- Validate SMTP -----------------
+const missing = [];
+if (!SMTP_HOST) missing.push("SMTP_HOST");
+if (!SMTP_PORT) missing.push("SMTP_PORT");
+if (!SMTP_USER) missing.push("SMTP_USER");
+if (!SMTP_PASS) missing.push("SMTP_PASS");
 
-// Default recipients for page keys
-const defaultRecipients = {
-  careers: "careers@faharidairies.co.ke",
-  contact: "info@faharidairies.co.ke",
-  orders: "orders@faharidairies.co.ke",
-  default: "info@faharidairies.co.ke",
-};
-
-/**
- * Initialize transporter & verify connection
- */
-export async function initEmail() {
-  if (transporter && smtpReady) return smtpReady;
-
-  const missing = [];
-  if (!SMTP_HOST) missing.push("SMTP_HOST");
-  if (!SMTP_PORT) missing.push("SMTP_PORT");
-  if (!SMTP_USER) missing.push("SMTP_USER");
-  if (!SMTP_PASS) missing.push("SMTP_PASS");
-
-  if (missing.length > 0) {
-    const msg = `Missing SMTP credentials: ${missing.join(", ")}. Emails ${
-      isDev ? "will be logged (DEV mode)" : "cannot be sent (production)"
-    }`;
-    logger[isProd ? "error" : "warn"](msg);
-    if (isProd) throw new Error(msg);
-    return false;
+if (missing.length > 0) {
+  const msg = `❌ Missing SMTP credentials: ${missing.join(
+    ", "
+  )}. Emails ${isDev ? "will be logged (DEV mode)" : "cannot be sent (production)"}`;
+  if (isProd) {
+    logger.error(msg);
+    throw new Error(msg);
+  } else {
+    logger.warn(msg);
   }
+}
 
+// ----------------- Transporter -----------------
+let transporter = null;
+
+if (missing.length === 0) {
   const portNum = Number(SMTP_PORT);
   const secure = SMTP_SECURE === "true" || portNum === 465;
 
@@ -57,79 +47,81 @@ export async function initEmail() {
     host: SMTP_HOST,
     port: portNum,
     secure,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-    tls: { rejectUnauthorized: isProd }, // adjust if cPanel TLS fails
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+    tls: {
+      rejectUnauthorized: isProd, // strict TLS in production
+    },
     connectionTimeout: Number(SMTP_CONNECTION_TIMEOUT_MS ?? 30000),
-    greetingTimeout: 30000,
-    socketTimeout: 60000,
-    debug: isDev, // verbose SMTP debug
-    logger: true,
+    debug: isDev,
   });
 
-  try {
-    await transporter.verify();
-    smtpReady = true;
-    logger.info(`✅ SMTP verified (host=${SMTP_HOST}, port=${portNum}, secure=${secure})`);
-  } catch (err) {
-    smtpReady = false;
-    logger.error(`❌ SMTP verification failed: ${err?.message || err}`);
-    if (isProd) throw new Error(`SMTP verification failed in production: ${err?.message || err}`);
-    else logger.warn("Continuing in DEV mode; emails will be logged instead of sent.");
-  }
-
-  return smtpReady;
+  // Verify transporter immediately
+  (async () => {
+    try {
+      await transporter.verify();
+      logger.info(
+        `✅ SMTP verified: host=${SMTP_HOST}, port=${portNum}, secure=${secure}`
+      );
+    } catch (err) {
+      logger.error(`❌ SMTP verification failed: ${err?.message || err}`);
+      if (isProd) throw new Error(`SMTP verification failed in production: ${err?.message}`);
+      else logger.warn("Continuing in DEV mode; emails will be logged instead of sent.");
+    }
+  })();
 }
 
+// ----------------- Send email -----------------
 /**
  * Send an email
  * @param {Object} options
- * @param {string|string[]} options.to - recipient email or key ('careers', 'contact', etc.)
+ * @param {string|string[]} options.to - recipient(s)
  * @param {string} options.subject
  * @param {string} [options.text]
  * @param {string} [options.html]
  * @param {string} [options.from] - optional sender override
- * @param {Array} [options.attachments] - optional Nodemailer attachments
  */
-export async function sendEmail({ to, subject, text, html, from, attachments } = {}) {
-  if (!to || !subject) throw new Error("sendEmail requires 'to' and 'subject'");
+export async function sendEmail({ to, subject, text, html, from }) {
+  if (!to || !subject) throw new Error("sendEmail: 'to' and 'subject' are required");
 
-  // Ensure transporter ready
-  if (!transporter || !smtpReady) await initEmail();
-
-  // Resolve recipient email
-  const recipient = defaultRecipients[to] || (to.includes("@") ? to : defaultRecipients.default);
-
-  // Dev/log-only fallback
-  if (!smtpReady) {
-    logger.info(`[LOG ONLY] Email skipped: to=${recipient}, subject=${subject}`);
-    logger.debug("Email payload:", { text, html, attachments });
+  // Dev/log-only mode
+  if (!transporter) {
+    logger.info(
+      "📧 [LOG ONLY] Email would be sent:",
+      { to, subject, from: from ?? FROM_EMAIL ?? SMTP_USER }
+    );
+    logger.debug("Email payload:", { text, html });
     return { logged: true };
   }
 
   const mailOptions = {
     from: from ?? FROM_EMAIL ?? `"Fahari Yoghurt" <${SMTP_USER}>`,
-    to: recipient,
+    to,
     subject,
-    text: text ?? "",
+    text,
     html,
-    attachments,
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    logger.info(`📧 Email sent: to=${recipient}, subject=${subject}, id=${info.messageId}`);
+    logger.info(
+      `📧 Email sent: ${subject} → ${Array.isArray(to) ? to.join(",") : to} (id=${info.messageId})`
+    );
 
     if (isDev) {
       const preview = nodemailer.getTestMessageUrl(info);
       if (preview) logger.info("Preview URL:", preview);
-      logger.debug("SMTP info:", info);
+      logger.debug("SMTP send info:", info);
     }
 
     return info;
   } catch (err) {
-    logger.error(`❌ Failed to send email to ${recipient}: ${err?.message || err}`);
+    logger.error(`❌ Failed to send email (${subject} → ${to}): ${err?.message || err}`);
     throw err;
   }
 }
 
-export default { initEmail, sendEmail };
+// ✅ Default export
+export default { sendEmail };

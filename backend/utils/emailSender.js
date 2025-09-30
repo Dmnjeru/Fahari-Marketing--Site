@@ -1,9 +1,11 @@
+// backend/utils/emailSender.js
 import nodemailer from "nodemailer";
 import logger from "../config/logger.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
+// ----------------- Env & Mode -----------------
 const {
   SMTP_HOST,
   SMTP_PORT,
@@ -12,67 +14,71 @@ const {
   SMTP_SECURE,
   FROM_EMAIL,
   NODE_ENV,
-  SMTP_CONNECTION_TIMEOUT_MS,
 } = process.env;
 
 const isProd = NODE_ENV === "production";
 const isDev = !isProd;
 
+// ----------------- Internal State -----------------
 let transporter = null;
-let smtpReady = false;
+let smtpConfigured = false;
 
-/**
- * Initialize SMTP transporter
- */
+// ----------------- Initialize Transporter -----------------
 export async function initEmail() {
-  if (transporter && smtpReady) return smtpReady;
+  if (transporter && smtpConfigured) return smtpConfigured;
 
-  // Validate env
-  const missing = [];
-  if (!SMTP_HOST) missing.push("SMTP_HOST");
-  if (!SMTP_PORT) missing.push("SMTP_PORT");
-  if (!SMTP_USER) missing.push("SMTP_USER");
-  if (!SMTP_PASS) missing.push("SMTP_PASS");
+  // Check missing critical vars
+  const missingVars = [];
+  if (!SMTP_HOST) missingVars.push("SMTP_HOST");
+  if (!SMTP_PORT) missingVars.push("SMTP_PORT");
+  if (!SMTP_USER) missingVars.push("SMTP_USER");
+  if (!SMTP_PASS) missingVars.push("SMTP_PASS");
 
-  if (missing.length > 0) {
-    const msg = `Missing SMTP env vars: ${missing.join(",")}. Emails ${
-      isDev ? "will be logged (dev)" : "cannot be sent (prod)"
+  if (missingVars.length > 0) {
+    const msg = `⚠️ Missing SMTP variables: ${missingVars.join(", ")}. Emails ${
+      isDev ? "will be logged (DEV mode)" : "cannot be sent (production)"
     }`;
-    logger[isProd ? "error" : "warn"](msg);
-    if (isProd) throw new Error(msg);
-    return false;
+    if (isProd) {
+      logger.error(msg);
+      throw new Error(msg);
+    } else {
+      logger.warn(msg);
+      smtpConfigured = false;
+      return smtpConfigured;
+    }
   }
-
-  const portNum = Number(SMTP_PORT);
-  const secure = SMTP_SECURE === "true" || portNum === 465;
-
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: portNum,
-    secure,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-    tls: { rejectUnauthorized: isProd }, // adjust if cPanel TLS issues
-    connectionTimeout: Number(SMTP_CONNECTION_TIMEOUT_MS ?? 30000),
-    greetingTimeout: 30000,
-    socketTimeout: 60000,
-    debug: isDev, // enable SMTP debug
-    logger: true, // logs protocol info
-  });
 
   try {
+    transporter = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: Number(SMTP_PORT),
+      secure: SMTP_SECURE === "true" || Number(SMTP_PORT) === 465, // SSL for 465
+      auth: {
+        user: SMTP_USER,
+        pass: SMTP_PASS,
+      },
+      tls: {
+        rejectUnauthorized: isProd,
+      },
+      debug: isDev,
+      connectionTimeout: 30000,
+    });
+
     await transporter.verify();
-    smtpReady = true;
-    logger.info(`✅ SMTP verified (host=${SMTP_HOST}, port=${portNum}, secure=${secure})`);
+    smtpConfigured = true;
+    logger.info(
+      `✅ SMTP verified and ready: host=${SMTP_HOST}, port=${SMTP_PORT}, secure=${transporter.options.secure}`
+    );
   } catch (err) {
-    smtpReady = false;
     logger.error(`❌ SMTP verification failed: ${err?.message || err}`);
-    if (isProd) throw new Error(`SMTP verification failed in production: ${err?.message || err}`);
+    smtpConfigured = false;
+    if (isProd) throw new Error("SMTP verification failed in production: " + err?.message);
   }
 
-  return smtpReady;
+  return smtpConfigured;
 }
 
-// Default recipients mapping
+// ----------------- Default Recipients -----------------
 const defaultRecipients = {
   careers: "careers@faharidairies.co.ke",
   contact: "info@faharidairies.co.ke",
@@ -80,50 +86,53 @@ const defaultRecipients = {
   default: "info@faharidairies.co.ke",
 };
 
+// ----------------- Send Email -----------------
 /**
- * Send an email
+ * Send email safely in dev/prod.
  * @param {Object} options
- * @param {string} options.to - Email OR key ('careers', 'contact', etc.)
- * @param {string} options.subject
- * @param {string} [options.text]
- * @param {string} [options.html]
- * @param {string} [options.from]
- * @param {Array} [options.attachments]
+ * @param {string} options.to - Recipient email OR page key ('careers', 'contact', 'orders')
+ * @param {string} options.subject - Email subject
+ * @param {string} [options.text] - Plain text content
+ * @param {string} [options.html] - HTML content
+ * @param {string} [options.from] - Optional from address override
  */
-export async function sendEmail({ to, subject, text, html, from, attachments } = {}) {
-  if (!to || !subject) throw new Error("sendEmail requires 'to' and 'subject'");
+export async function sendEmail({ to, subject, text, html, from }) {
+  if (!subject || !to) throw new Error("sendEmail: 'to' and 'subject' are required");
 
-  // Ensure transporter ready
-  if (!transporter || !smtpReady) {
+  // Lazy init if transporter not ready
+  if (!transporter || !smtpConfigured) {
     await initEmail();
   }
 
-  const recipient = defaultRecipients[to] || (to.includes("@") ? to : defaultRecipients.default);
+  // Resolve recipient email
+  const recipient =
+    defaultRecipients[to] || (to.includes("@") ? to : defaultRecipients.default);
 
   // Dev/log-only fallback
-  if (!smtpReady) {
-    logger.info(`[LOG ONLY] Email skipped: to=${recipient}, subject=${subject}`);
-    logger.debug("Email payload:", { text, html, attachments });
+  if (!smtpConfigured) {
+    logger.info(`📧 [LOG ONLY] Email skipped: to=${recipient}, subject=${subject}`);
+    logger.debug("Email content:", { text, html });
     return { logged: true };
   }
 
   const mailOptions = {
-    from: from ?? FROM_EMAIL ?? `"Fahari Yoghurt" <${SMTP_USER}>`,
+    from: from ?? FROM_EMAIL ?? `"Fahari Site" <${SMTP_USER}>`,
     to: recipient,
     subject,
     text: text ?? "",
     html,
-    attachments,
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    logger.info(`📧 Email sent: to=${recipient}, subject=${subject}, id=${info.messageId}`);
+    logger.info(
+      `📧 Email sent successfully: to=${recipient}, subject=${subject}, messageId=${info.messageId}`
+    );
 
     if (isDev) {
       const preview = nodemailer.getTestMessageUrl(info);
       if (preview) logger.info("Preview URL:", preview);
-      logger.debug("SMTP info:", info);
+      logger.debug("SMTP send info:", info);
     }
 
     return info;
@@ -133,4 +142,5 @@ export async function sendEmail({ to, subject, text, html, from, attachments } =
   }
 }
 
+// ----------------- Default Export -----------------
 export default { initEmail, sendEmail };

@@ -5,15 +5,24 @@ import dotenv from "dotenv";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
+/**
+ * Robust sendEmail helper
+ * - Loads backend/.env automatically if SMTP env not present
+ * - Fail-fast in production if SMTP creds missing
+ * - Verify transporter at startup (throws in production)
+ * - Exports named + default sendEmail
+ */
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// Load backend/.env if any SMTP env missing
+// If SMTP env looks missing, attempt to load backend/.env (helps when running from project root)
 if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
   try {
-    dotenv.config({ path: join(__dirname, "..", ".env") });
-    logger.debug && logger.debug("dotenv: loaded backend/.env");
+    const envPath = join(__dirname, "..", ".env"); // backend/.env
+    dotenv.config({ path: envPath });
+    logger.debug && logger.debug(`dotenv: attempted to load env from ${envPath}`);
   } catch (err) {
-    // ignore; handled below
+    // ignore; we'll validate below
   }
 }
 
@@ -31,15 +40,18 @@ const {
 const isProd = NODE_ENV === "production";
 const isDev = !isProd;
 
+// Validate required SMTP fields
 const missing = [];
 if (!SMTP_HOST) missing.push("SMTP_HOST");
 if (!SMTP_PORT) missing.push("SMTP_PORT");
 if (!SMTP_USER) missing.push("SMTP_USER");
 if (!SMTP_PASS) missing.push("SMTP_PASS");
 
+// If missing critical fields, decide behavior: fail in prod, log in dev
 if (missing.length > 0) {
   const msg = `Missing SMTP credentials: ${missing.join(", ")}.`;
   if (isProd) {
+    // In production we want to fail fast to avoid silent broken email pipeline
     logger.error(`❌ ${msg} Aborting startup (production requires SMTP).`);
     throw new Error(msg);
   } else {
@@ -49,6 +61,7 @@ if (missing.length > 0) {
 
 let transporter = null;
 
+// Create transporter only if we have credentials
 if (missing.length === 0) {
   const portNum = Number(SMTP_PORT || 465);
   const secure = SMTP_SECURE === "true" || portNum === 465;
@@ -57,57 +70,62 @@ if (missing.length === 0) {
     host: SMTP_HOST,
     port: portNum,
     secure,
-    auth: { user: SMTP_USER, pass: SMTP_PASS },
-    tls: { rejectUnauthorized: isProd },
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+    tls: {
+      // in production enforce certificate validity
+      rejectUnauthorized: isProd,
+    },
     connectionTimeout: Number(SMTP_CONNECTION_TIMEOUT_MS ?? 30000),
     greetingTimeout: 30000,
     socketTimeout: 60000,
-    logger: true, // logs SMTP connection info
-    debug: isDev, // verbose SMTP debug
+    debug: isDev,
   });
-}
 
-// Verify transporter before sending any emails
-async function verifyTransporter() {
-  if (!transporter) return false;
-  try {
-    await transporter.verify();
-    logger.info(`✅ SMTP verified (host=${SMTP_HOST}, port=${SMTP_PORT}, secure=${secure})`);
-    return true;
-  } catch (err) {
-    logger.error(`❌ SMTP verification failed: ${(err && err.message) || err}`);
-    if (isProd) throw new Error(`SMTP verification failed in production: ${(err && err.message) || err}`);
-    return false;
-  }
+  // Verify transporter on startup. Fail-fast in production.
+  (async () => {
+    try {
+      await transporter.verify();
+      logger.info(`✅ SMTP verified (host=${SMTP_HOST}, port=${portNum}, secure=${secure})`);
+    } catch (err) {
+      logger.error(`❌ SMTP verification failed: ${(err && err.message) || err}`);
+      if (isProd) {
+        // crash the process so orchestrator can restart with corrected env
+        throw new Error(`SMTP verification failed in production: ${(err && err.message) || err}`);
+      } else {
+        logger.warn("Continuing in dev mode despite SMTP verification failure (log-only).");
+        transporter = null; // treat as log-only
+      }
+    }
+  })();
 }
 
 /**
- * Send an email
+ * Send an email (or log if transporter not configured)
  * @param {Object} opts
  * @param {string|string[]} opts.to
  * @param {string} opts.subject
  * @param {string} [opts.text]
  * @param {string} [opts.html]
  * @param {string} [opts.from]
- * @param {Array} [opts.attachments]
  */
-export async function sendEmail({ to, subject, text, html, from, attachments } = {}) {
-  if (!to || !subject) throw new Error("sendEmail: 'to' and 'subject' are required");
+export async function sendEmail({ to, subject, text, html, from } = {}) {
+  if (!to || !subject) {
+    throw new Error("sendEmail: 'to' and 'subject' are required");
+  }
 
-  // If transporter not configured, log-only mode
+  // If transporter not present (dev/log-only), log and return
   if (!transporter) {
-    logger.info("📧 [LOG ONLY] Email would be sent:", {
+    logger.info("📧 [LOG ONLY] Email would be sent (transporter not configured):", {
       to,
       subject,
       from: from ?? FROM_EMAIL ?? SMTP_USER,
-      attachmentsCount: attachments?.length ?? 0,
     });
-    logger.debug && logger.debug("Email payload:", { text, html, attachments });
+    logger.debug && logger.debug("Email payload:", { text, html });
     return { logged: true };
   }
-
-  // Verify transporter before sending
-  await verifyTransporter();
 
   const mailOptions = {
     from: from ?? FROM_EMAIL ?? `"Fahari Yoghurt" <${SMTP_USER}>`,
@@ -115,14 +133,11 @@ export async function sendEmail({ to, subject, text, html, from, attachments } =
     subject,
     text,
     html,
-    attachments,
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    logger.info(
-      `📧 Email sent: ${subject} → ${Array.isArray(to) ? to.join(",") : to} (id=${info.messageId}, attachments=${attachments?.length ?? 0})`
-    );
+    logger.info(`📧 Email sent: ${subject} → ${Array.isArray(to) ? to.join(",") : to} (id=${info.messageId})`);
 
     if (isDev) {
       const preview = nodemailer.getTestMessageUrl(info);
