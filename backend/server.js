@@ -305,5 +305,22 @@ process.on("unhandledRejection", (reason) => {
   logger.error("Unhandled Rejection:", reason);
   // allow process manager to restart
 });
+// -------------------------------
+// Test email route
+// -------------------------------
+app.get("/api/test-email", async (req, res) => {
+  try {
+    await sendEmail({
+      to: process.env.CONTACT_RECEIVER || "info@faharidairies.co.ke",
+      subject: "📧 Test Email from Fahari Backend",
+      text: "This is a test email from your backend.",
+      html: "<h2>This is a test email from your backend</h2>",
+    });
+    res.status(200).json({ success: true, message: "Test email sent!" });
+  } catch (err) {
+    logger.error("❌ Test email failed:", err?.message ?? err);
+    res.status(500).json({ success: false, message: "Test email failed", error: err?.message });
+  }
+});
 
 export default app;
