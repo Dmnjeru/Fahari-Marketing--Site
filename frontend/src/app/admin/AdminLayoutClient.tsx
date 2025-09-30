@@ -1,29 +1,23 @@
 // frontend/src/app/admin/AdminLayoutClient.tsx
 "use client";
 
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Menu, X, LogOut } from "lucide-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import axiosAuth from "../../lib/axiosAuth";
 
 interface AdminLayoutClientProps {
   children: ReactNode;
   onLogout?: () => void;
 }
 
-export default function AdminLayoutClient({
-  children,
-  onLogout,
-}: AdminLayoutClientProps): React.ReactElement {
+export default function AdminLayoutClient({ children, onLogout }: AdminLayoutClientProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [queryClient] = useState(() => new QueryClient());
 
-  const [checking, setChecking] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  // React Query client
+  const [queryClient] = useState(() => new QueryClient());
 
   const navItems = [
     { label: "Dashboard", href: "/admin" },
@@ -31,62 +25,6 @@ export default function AdminLayoutClient({
     { label: "Applications", href: "/admin/applications" },
     { label: "Blogs", href: "/admin/blogs" },
   ];
-
-  useEffect(() => {
-    let mounted = true;
-    const controller = new AbortController();
-
-    const verify = async () => {
-      try {
-        setChecking(true);
-        // Verify session from backend
-        await axiosAuth.get("/api/admin/me", {
-          withCredentials: true,
-          signal: controller.signal,
-        });
-        if (mounted) setAuthenticated(true);
-      } catch {
-        if (mounted) {
-          setAuthenticated(false);
-          const isLoginPath =
-            pathname === "/admin/login" || pathname === "/admin/login/";
-          if (!isLoginPath) {
-            try {
-              router.push("/admin/login");
-            } catch {
-              // swallow router errors in early render phases
-            }
-          }
-        }
-      } finally {
-        if (mounted) setChecking(false);
-      }
-    };
-
-    verify();
-
-    return () => {
-      mounted = false;
-      controller.abort();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
-
-  if (checking) {
-    return (
-      <div className="flex items-center justify-center h-screen text-gray-500">
-        Checking authentication…
-      </div>
-    );
-  }
-
-  if (!authenticated) {
-    return (
-      <div className="flex items-center justify-center h-screen text-gray-500">
-        Redirecting…
-      </div>
-    );
-  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -110,11 +48,7 @@ export default function AdminLayoutClient({
                   key={item.href}
                   href={item.href}
                   className={`flex items-center px-4 py-2 rounded-lg transition-colors 
-                    ${
-                      active
-                        ? "bg-violet-100 font-semibold text-violet-700"
-                        : "hover:bg-gray-100"
-                    }`}
+                    ${active ? "bg-violet-100 font-semibold text-violet-700" : "hover:bg-gray-100"}`}
                 >
                   {item.label}
                 </Link>
@@ -126,8 +60,6 @@ export default function AdminLayoutClient({
               <button
                 onClick={onLogout}
                 className="mt-6 w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-                aria-label="Logout"
-                type="button"
               >
                 <LogOut size={16} /> Logout
               </button>
@@ -144,7 +76,6 @@ export default function AdminLayoutClient({
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="p-2 rounded hover:bg-gray-100"
               aria-label="Toggle Sidebar"
-              type="button"
             >
               {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
