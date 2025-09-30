@@ -1,172 +1,168 @@
-// frontend/src/app/admin/pages/PagesManagement.tsx
+// frontend/src/app/admin/AdminLayoutClient.tsx
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import axios, { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
-import Modal from "../../components/Modal"; // Simple reusable modal component
+import React, { ReactNode, useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, X, LogOut } from "lucide-react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import axiosAuth from "../../../lib/axiosAuth";
 
-// ---------------------- Types ----------------------
-interface Page {
-  _id: string;
-  title: string;
-  slug: string;
-  content: string;
-  image?: string;
+interface AdminLayoutClientProps {
+  children: ReactNode;
 }
 
-interface ApiErrorData {
-  message?: string;
-}
-
-// ---------------------- Component ----------------------
-const PagesManagement: React.FC = () => {
+export default function AdminLayoutClient({
+  children,
+}: AdminLayoutClientProps): React.ReactElement {
+  const pathname = usePathname();
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [queryClient] = useState(() => new QueryClient());
 
-  const [pages, setPages] = useState<Page[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedPage, setSelectedPage] = useState<Page | null>(null);
-  const [contentUpdate, setContentUpdate] = useState("");
-  const [imageUpdate, setImageUpdate] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
 
-  // Fetch pages (useCallback so it can be a dependency safely)
-  const fetchPages = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await axios.get<{ data: Page[] }>("/api/admin/pages", {
-        withCredentials: true,
-      });
-      setPages(res.data.data || []);
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const axiosErr = err as AxiosError;
-        console.error("Fetch pages failed", axiosErr);
-        if (axiosErr.response?.status === 401) {
-          router.push("/admin/login");
-        } else {
-          const apiData = axiosErr.response?.data as ApiErrorData | undefined;
-          setError(apiData?.message || axiosErr.message || "Failed to fetch pages.");
-        }
-      } else if (err instanceof Error) {
-        console.error("Fetch pages failed", err);
-        setError(err.message);
-      } else {
-        console.error("Fetch pages failed", err);
-        setError("An unknown error occurred while fetching pages.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
+  const navItems = [
+    { label: "Dashboard", href: "/admin" },
+    { label: "Jobs", href: "/admin/jobs" },
+    { label: "Applications", href: "/admin/applications" },
+    { label: "Blogs", href: "/admin/blogs" },
+  ];
 
+  // Verify authentication
   useEffect(() => {
-    fetchPages();
-  }, [fetchPages]);
+    let mounted = true;
+    const controller = new AbortController();
 
-  const openEditModal = (page: Page) => {
-    setSelectedPage(page);
-    setContentUpdate(page.content);
-    setImageUpdate(null);
-    setModalOpen(true);
-  };
-
-  const handleUpdate = async () => {
-    if (!selectedPage) return;
-
-    const payload = new FormData();
-    payload.append("content", contentUpdate);
-    if (imageUpdate) payload.append("image", imageUpdate);
-
-    setError(null);
-    try {
-      const res = await axios.patch<{ data: Page }>(
-        `/api/admin/pages/${selectedPage._id}`,
-        payload,
-        {
+    const verify = async () => {
+      try {
+        setChecking(true);
+        await axiosAuth.get("/api/admin/me", {
           withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
+          signal: controller.signal,
+        });
+        if (mounted) setAuthenticated(true);
+      } catch {
+        if (mounted) {
+          setAuthenticated(false);
+          const isLoginPath =
+            pathname === "/admin/login" || pathname === "/admin/login/";
+          if (!isLoginPath) {
+            try {
+              router.push("/admin/login");
+            } catch {
+              // swallow router errors in early render phases
+            }
+          }
         }
-      );
-
-      setPages((prev) => prev.map((p) => (p._id === selectedPage._id ? res.data.data : p)));
-      setModalOpen(false);
-    } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        const axiosErr = err as AxiosError;
-        console.error("Update failed", axiosErr);
-        const apiData = axiosErr.response?.data as ApiErrorData | undefined;
-        setError(apiData?.message || axiosErr.message || "Update failed");
-      } else if (err instanceof Error) {
-        console.error("Update failed", err);
-        setError(err.message);
-      } else {
-        console.error("Update failed", err);
-        setError("An unknown error occurred while updating the page.");
+      } finally {
+        if (mounted) setChecking(false);
       }
+    };
+
+    verify();
+
+    return () => {
+      mounted = false;
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      await axiosAuth.post("/api/admin/logout", {}, { withCredentials: true });
+    } catch {
+      // Even if server call fails, clear client state
+    } finally {
+      localStorage.removeItem("authToken"); // if you use localStorage tokens
+      setAuthenticated(false);
+      router.push("/admin/login");
     }
   };
+
+  if (checking) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500">
+        Checking authentication…
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <div className="flex items-center justify-center h-screen text-gray-500">
+        Redirecting…
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">Pages Management</h1>
-
-      {error && <p className="text-red-600 mb-3">{error}</p>}
-
-      {loading ? (
-        <p>Loading pages...</p>
-      ) : pages.length === 0 ? (
-        <p>No pages found.</p>
-      ) : (
-        <div className="space-y-3">
-          {pages.map((page) => (
-            <div
-              key={page._id}
-              className="border p-3 rounded flex justify-between items-center"
-            >
-              <div>
-                <p className="font-semibold">{page.title}</p>
-                <p className="text-sm text-gray-600">{page.slug}</p>
-              </div>
-              <button
-                className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
-                onClick={() => openEditModal(page)}
-              >
-                Edit
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {modalOpen && selectedPage && (
-        <Modal title={`Edit Page — ${selectedPage.title}`} onClose={() => setModalOpen(false)}>
-          <div className="space-y-3">
-            <textarea
-              value={contentUpdate}
-              onChange={(e) => setContentUpdate(e.target.value)}
-              placeholder="Page content"
-              className="w-full border p-2 rounded h-40"
-            />
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setImageUpdate(e.target.files?.[0] ?? null)}
-              className="w-full"
-            />
-            <button
-              onClick={handleUpdate}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-            >
-              Save Changes
-            </button>
+    <QueryClientProvider client={queryClient}>
+      <div className="flex min-h-screen bg-gray-100 text-black">
+        {/* Sidebar */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-20 w-64 bg-white border-r shadow-md transform transition-transform duration-300 ease-in-out
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:static md:inset-auto`}
+        >
+          {/* Logo / Header */}
+          <div className="h-16 flex items-center justify-center font-bold text-2xl border-b bg-gray-50">
+            Admin Panel
           </div>
-        </Modal>
-      )}
-    </div>
-  );
-};
 
-export default PagesManagement;
+          {/* Nav links */}
+          <nav className="p-4 space-y-2">
+            {navItems.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center px-4 py-2 rounded-lg transition-colors 
+                    ${
+                      active
+                        ? "bg-violet-100 font-semibold text-violet-700"
+                        : "hover:bg-gray-100"
+                    }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="mt-6 w-full flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              aria-label="Logout"
+              type="button"
+            >
+              <LogOut size={16} /> Logout
+            </button>
+          </nav>
+        </aside>
+
+        {/* Main content */}
+        <div className="flex-1 flex flex-col min-h-screen md:pl-64">
+          {/* Top navbar (mobile only) */}
+          <header className="h-16 flex items-center justify-between px-4 bg-white border-b shadow-sm md:hidden">
+            <div className="font-bold text-lg">Admin Panel</div>
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="p-2 rounded hover:bg-gray-100"
+              aria-label="Toggle Sidebar"
+              type="button"
+            >
+              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </header>
+
+          {/* Page content */}
+          <main className="flex-1 overflow-auto p-6">{children}</main>
+        </div>
+      </div>
+    </QueryClientProvider>
+  );
+}

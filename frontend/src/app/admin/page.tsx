@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 // frontend/src/app/admin/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios"; // used for isAxiosError
 import axiosAuth from "../../lib/axiosAuth";
 import AdminLayoutClient from "./AdminLayoutClient";
-import { useRouter } from "next/navigation";
 
 interface DashboardData {
   totalJobs: number;
@@ -16,9 +14,7 @@ interface DashboardData {
   totalBlogs: number;
 }
 
-export default function AdminPage() {
-  const router = useRouter();
-
+export default function AdminPage(): React.ReactElement {
   const [adminVerified, setAdminVerified] = useState<boolean>(false);
   const [loginEmail, setLoginEmail] = useState<string>("");
   const [loginPassword, setLoginPassword] = useState<string>("");
@@ -51,27 +47,30 @@ export default function AdminPage() {
   } = useQuery<DashboardData>({
     queryKey: ["admin-dashboard"],
     queryFn: async () => {
-      // ✅ Use actual backend routes
       const [jobsRes, appsRes, productsRes, blogsRes] = await Promise.all([
-        axiosAuth.get<{ count: number }>("/api/careers/jobs"), // returns array
+        axiosAuth.get<{ count: number }>("/api/careers/jobs"),
         axiosAuth.get<{ count: number }>("/api/careers/applications/count"),
-        axiosAuth.get("/api/products"), // returns array of products
-        axiosAuth.get("/api/analytics/top-blogs"), // returns array of blogs
+        axiosAuth.get("/api/products"),
+        axiosAuth.get("/api/analytics/top-blogs"),
       ]);
 
       return {
-        totalJobs: Array.isArray(jobsRes.data) ? jobsRes.data.length : jobsRes.data.count ?? 0,
+        totalJobs: Array.isArray(jobsRes.data)
+          ? jobsRes.data.length
+          : jobsRes.data.count ?? 0,
         totalApplications: appsRes.data?.count ?? 0,
-        totalProducts: Array.isArray(productsRes.data) ? productsRes.data.length : 0,
+        totalProducts: Array.isArray(productsRes.data)
+          ? productsRes.data.length
+          : 0,
         totalBlogs: Array.isArray(blogsRes.data) ? blogsRes.data.length : 0,
       };
     },
     enabled: adminVerified,
-    refetchInterval: 5000, // auto refresh every 5s
+    refetchInterval: 5000,
   });
 
-  // 🔹 Login handler (keep design unchanged)
-  const handleLogin = async (e: React.FormEvent) => {
+  // 🔹 Login handler
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoginError("");
     if (!loginEmail.trim() || !loginPassword.trim()) {
@@ -97,11 +96,18 @@ export default function AdminPage() {
       setLoginEmail("");
       setLoginPassword("");
     } catch (err: unknown) {
-      setLoginError(
-        (err as any)?.response?.data?.message ??
-          (err as Error).message ??
-          "Unexpected error"
-      );
+      // Properly handle Axios vs non-Axios errors (no `any`)
+      if (axios.isAxiosError(err)) {
+        // If server returned JSON { message: "..."} it will be available here.
+        const serverMsg =
+          (err.response?.data && (err.response.data as { message?: string }).message) ??
+          err.message;
+        setLoginError(serverMsg ?? "Unexpected error");
+      } else if (err instanceof Error) {
+        setLoginError(err.message);
+      } else {
+        setLoginError("Unexpected error");
+      }
     } finally {
       setLoginLoading(false);
     }
@@ -137,7 +143,7 @@ export default function AdminPage() {
           <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
 
           {loginError && (
-            <div className="mb-4 text-sm text-red-700 bg-red-100 p-2 rounded">
+            <div className="mb-4 text-sm text-red-700 bg-red-100 p-2 rounded" role="alert">
               {loginError}
             </div>
           )}
@@ -166,9 +172,7 @@ export default function AdminPage() {
             type="submit"
             disabled={loginLoading}
             className={`w-full bg-blue-600 text-white p-2 rounded ${
-              loginLoading
-                ? "opacity-60 cursor-not-allowed"
-                : "hover:bg-blue-700"
+              loginLoading ? "opacity-60 cursor-not-allowed" : "hover:bg-blue-700"
             }`}
           >
             {loginLoading ? "Logging in…" : "Login"}
@@ -193,12 +197,8 @@ export default function AdminPage() {
         {dashboardData && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-white shadow rounded-lg p-6 flex flex-col items-start">
-              <h2 className="text-lg font-semibold text-gray-600 mb-2">
-                Total Jobs
-              </h2>
-              <span className="text-3xl font-bold text-blue-600">
-                {dashboardData.totalJobs}
-              </span>
+              <h2 className="text-lg font-semibold text-gray-600 mb-2">Total Jobs</h2>
+              <span className="text-3xl font-bold text-blue-600">{dashboardData.totalJobs}</span>
             </div>
 
             <div className="bg-white shadow rounded-lg p-6 flex flex-col items-start">
@@ -211,27 +211,17 @@ export default function AdminPage() {
             </div>
 
             <div className="bg-white shadow rounded-lg p-6 flex flex-col items-start">
-              <h2 className="text-lg font-semibold text-gray-600 mb-2">
-                Total Products
-              </h2>
-              <span className="text-3xl font-bold text-purple-600">
-                {dashboardData.totalProducts}
-              </span>
+              <h2 className="text-lg font-semibold text-gray-600 mb-2">Total Products</h2>
+              <span className="text-3xl font-bold text-purple-600">{dashboardData.totalProducts}</span>
             </div>
 
             <div className="bg-white shadow rounded-lg p-6 flex flex-col items-start">
-              <h2 className="text-lg font-semibold text-gray-600 mb-2">
-                Total Blogs
-              </h2>
-              <span className="text-3xl font-bold text-pink-600">
-                {dashboardData.totalBlogs}
-              </span>
+              <h2 className="text-lg font-semibold text-gray-600 mb-2">Total Blogs</h2>
+              <span className="text-3xl font-bold text-pink-600">{dashboardData.totalBlogs}</span>
             </div>
 
             <div className="bg-white shadow rounded-lg p-6 flex flex-col items-start col-span-full">
-              <h2 className="text-lg font-semibold text-gray-600 mb-2">
-                Quick Actions
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-600 mb-2">Quick Actions</h2>
               <ul className="text-gray-700 list-disc list-inside">
                 <li>Create Job</li>
                 <li>Manage Applications</li>
