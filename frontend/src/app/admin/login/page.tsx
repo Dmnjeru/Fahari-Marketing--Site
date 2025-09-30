@@ -1,11 +1,15 @@
+// frontend/src/app/admin/login/page.tsx
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios"; // removed unused AxiosError
+import axios from "axios";
 import { useRouter } from "next/navigation";
 import AdminLayoutClient from "../AdminLayoutClient";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
+// Use NEXT_PUBLIC_API_URL (matches your .env.production)
+// Example: NEXT_PUBLIC_API_URL=https://api.faharidairies.co.ke
+const BACKEND_URL =
+  (process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "")) || "http://localhost:5000";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -63,7 +67,9 @@ export default function AdminLoginPage() {
           <h1 className="text-2xl font-bold mb-6 text-center">Admin Login</h1>
 
           {error && (
-            <div className="mb-4 text-sm text-red-700 bg-red-100 p-2 rounded">{error}</div>
+            <div className="mb-4 text-sm text-red-700 bg-red-100 p-2 rounded">
+              {error}
+            </div>
           )}
 
           <label className="block mb-2 font-medium">Email</label>
