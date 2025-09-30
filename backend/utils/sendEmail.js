@@ -10,6 +10,7 @@ import { fileURLToPath } from "url";
  * - Loads backend/.env automatically if SMTP env not present
  * - Fail-fast in production if SMTP creds missing
  * - Verify transporter at startup (throws in production)
+ * - Supports attachments (CVs, etc.)
  * - Exports named + default sendEmail
  */
 
@@ -51,7 +52,6 @@ if (!SMTP_PASS) missing.push("SMTP_PASS");
 if (missing.length > 0) {
   const msg = `Missing SMTP credentials: ${missing.join(", ")}.`;
   if (isProd) {
-    // In production we want to fail fast to avoid silent broken email pipeline
     logger.error(`❌ ${msg} Aborting startup (production requires SMTP).`);
     throw new Error(msg);
   } else {
@@ -75,7 +75,6 @@ if (missing.length === 0) {
       pass: SMTP_PASS,
     },
     tls: {
-      // in production enforce certificate validity
       rejectUnauthorized: isProd,
     },
     connectionTimeout: Number(SMTP_CONNECTION_TIMEOUT_MS ?? 30000),
@@ -92,11 +91,10 @@ if (missing.length === 0) {
     } catch (err) {
       logger.error(`❌ SMTP verification failed: ${(err && err.message) || err}`);
       if (isProd) {
-        // crash the process so orchestrator can restart with corrected env
         throw new Error(`SMTP verification failed in production: ${(err && err.message) || err}`);
       } else {
         logger.warn("Continuing in dev mode despite SMTP verification failure (log-only).");
-        transporter = null; // treat as log-only
+        transporter = null;
       }
     }
   })();
@@ -110,20 +108,22 @@ if (missing.length === 0) {
  * @param {string} [opts.text]
  * @param {string} [opts.html]
  * @param {string} [opts.from]
+ * @param {Array}  [opts.attachments] - Nodemailer attachments array
  */
-export async function sendEmail({ to, subject, text, html, from } = {}) {
+export async function sendEmail({ to, subject, text, html, from, attachments } = {}) {
   if (!to || !subject) {
     throw new Error("sendEmail: 'to' and 'subject' are required");
   }
 
-  // If transporter not present (dev/log-only), log and return
+  // Log-only mode if transporter not configured
   if (!transporter) {
     logger.info("📧 [LOG ONLY] Email would be sent (transporter not configured):", {
       to,
       subject,
       from: from ?? FROM_EMAIL ?? SMTP_USER,
+      attachmentsCount: attachments?.length ?? 0,
     });
-    logger.debug && logger.debug("Email payload:", { text, html });
+    logger.debug && logger.debug("Email payload:", { text, html, attachments });
     return { logged: true };
   }
 
@@ -133,11 +133,14 @@ export async function sendEmail({ to, subject, text, html, from } = {}) {
     subject,
     text,
     html,
+    attachments, // ✅ now forwarded
   };
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    logger.info(`📧 Email sent: ${subject} → ${Array.isArray(to) ? to.join(",") : to} (id=${info.messageId})`);
+    logger.info(
+      `📧 Email sent: ${subject} → ${Array.isArray(to) ? to.join(",") : to} (id=${info.messageId}, attachments=${attachments?.length ?? 0})`
+    );
 
     if (isDev) {
       const preview = nodemailer.getTestMessageUrl(info);
