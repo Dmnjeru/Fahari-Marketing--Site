@@ -22,10 +22,18 @@ const isDev = !isProd;
 // ----------------- Internal State -----------------
 let transporter = null;
 let smtpConfigured = false;
+let isVerifying = false;
+
+// Email queue (in-memory)
+const emailQueue = [];
+let processingQueue = false;
 
 // ----------------- Initialize Transporter -----------------
-export async function initEmail() {
-  if (transporter && smtpConfigured) return smtpConfigured;
+export async function initEmail(force = false) {
+  if (smtpConfigured && transporter && !force) return true;
+  if (isVerifying) return false; // avoid race
+
+  isVerifying = true;
 
   // Check missing critical vars
   const missingVars = [];
@@ -44,7 +52,8 @@ export async function initEmail() {
     } else {
       logger.warn(msg);
       smtpConfigured = false;
-      return smtpConfigured;
+      isVerifying = false;
+      return false;
     }
   }
 
@@ -52,7 +61,7 @@ export async function initEmail() {
     transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT),
-      secure: SMTP_SECURE === "true" || Number(SMTP_PORT) === 465, // SSL for 465
+      secure: SMTP_SECURE === "true" || Number(SMTP_PORT) === 465,
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASS,
@@ -67,12 +76,13 @@ export async function initEmail() {
     await transporter.verify();
     smtpConfigured = true;
     logger.info(
-      `✅ SMTP verified and ready: host=${SMTP_HOST}, port=${SMTP_PORT}, secure=${transporter.options.secure}`
+      `✅ SMTP verified: host=${SMTP_HOST}, port=${SMTP_PORT}, secure=${transporter.options.secure}`
     );
   } catch (err) {
     logger.error(`❌ SMTP verification failed: ${err?.message || err}`);
     smtpConfigured = false;
-    if (isProd) throw new Error("SMTP verification failed in production: " + err?.message);
+  } finally {
+    isVerifying = false;
   }
 
   return smtpConfigured;
@@ -86,23 +96,43 @@ const defaultRecipients = {
   default: "info@faharidairies.co.ke",
 };
 
-// ----------------- Send Email -----------------
-/**
- * Send email safely in dev/prod.
- * @param {Object} options
- * @param {string} options.to - Recipient email OR page key ('careers', 'contact', 'orders')
- * @param {string} options.subject - Email subject
- * @param {string} [options.text] - Plain text content
- * @param {string} [options.html] - HTML content
- * @param {string} [options.from] - Optional from address override
- */
-export async function sendEmail({ to, subject, text, html, from }) {
-  if (!subject || !to) throw new Error("sendEmail: 'to' and 'subject' are required");
-
-  // Lazy init if transporter not ready
-  if (!transporter || !smtpConfigured) {
-    await initEmail();
+// ----------------- Retry Helper -----------------
+async function retryWithBackoff(fn, retries = 3, delay = 1000) {
+  let attempt = 0;
+  while (attempt < retries) {
+    try {
+      return await fn();
+    } catch (err) {
+      attempt++;
+      if (attempt >= retries) throw err;
+      const wait = delay * Math.pow(2, attempt - 1); // exponential
+      logger.warn(`Retrying email send (attempt ${attempt}/${retries}) in ${wait}ms`);
+      await new Promise((res) => setTimeout(res, wait));
+    }
   }
+}
+
+// ----------------- Queue Processor -----------------
+async function processQueue() {
+  if (processingQueue || !smtpConfigured) return;
+  processingQueue = true;
+
+  while (emailQueue.length > 0 && smtpConfigured) {
+    const { options, resolve, reject } = emailQueue.shift();
+    try {
+      const result = await sendEmailInternal(options);
+      resolve(result);
+    } catch (err) {
+      reject(err);
+    }
+  }
+
+  processingQueue = false;
+}
+
+// ----------------- Internal Send -----------------
+async function sendEmailInternal({ to, subject, text, html, from }) {
+  if (!subject || !to) throw new Error("sendEmail: 'to' and 'subject' are required");
 
   // Resolve recipient email
   const recipient =
@@ -123,23 +153,44 @@ export async function sendEmail({ to, subject, text, html, from }) {
     html,
   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    logger.info(
-      `📧 Email sent successfully: to=${recipient}, subject=${subject}, messageId=${info.messageId}`
-    );
+  return retryWithBackoff(async () => {
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      logger.info(
+        `📧 Email sent: to=${recipient}, subject=${subject}, messageId=${info.messageId}`
+      );
 
-    if (isDev) {
-      const preview = nodemailer.getTestMessageUrl(info);
-      if (preview) logger.info("Preview URL:", preview);
-      logger.debug("SMTP send info:", info);
+      if (isDev) {
+        const preview = nodemailer.getTestMessageUrl(info);
+        if (preview) logger.info("Preview URL:", preview);
+        logger.debug("SMTP send info:", info);
+      }
+
+      return info;
+    } catch (err) {
+      logger.error(`❌ Send failed (${recipient}): ${err?.message || err}`);
+      // If connection issue → force re-init
+      if (/ECONNECTION|ETIMEDOUT|ECONNRESET|ENOTFOUND/.test(err?.code || "")) {
+        smtpConfigured = false;
+        await initEmail(true); // force re-init
+      }
+      throw err;
     }
+  });
+}
 
-    return info;
-  } catch (err) {
-    logger.error(`❌ Failed to send email to ${recipient}: ${err?.message || err}`);
-    throw err;
+// ----------------- Public Send -----------------
+export async function sendEmail(options) {
+  if (!smtpConfigured) {
+    await initEmail();
   }
+
+  return new Promise((resolve, reject) => {
+    emailQueue.push({ options, resolve, reject });
+    processQueue().catch((err) => {
+      logger.error("❌ Queue processing error:", err);
+    });
+  });
 }
 
 // ----------------- Default Export -----------------

@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axiosAuth from "../../../lib/axiosAuth"; // ✅ use auth-aware axios
+import axiosAuth from "../../../lib/axiosAuth"; // axios wrapper with auth
 import { Button } from "../../../components/ui/button";
 import { Card, CardContent } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
@@ -16,20 +16,15 @@ import {
   TableCell,
 } from "../../../components/ui/table";
 import { motion } from "framer-motion";
-import { Trash2 } from "lucide-react";
-import axios from "axios"; // keep only for isAxiosError type checking
-
-export interface Application {
-  _id: string;
-  jobTitle: string;
-  applicantName: string;
-  applicantEmail: string;
-  status: "pending" | "reviewed" | "rejected" | "accepted";
-  submittedAt: string;
-}
+import { Trash2, Eye } from "lucide-react";
+import axios from "axios";
+import ApplicationModal, { Application } from "./ApplicationModal";
 
 export default function ApplicationsPage() {
   const [search, setSearch] = useState("");
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const queryClient = useQueryClient();
 
   // Fetch applications
@@ -38,6 +33,7 @@ export default function ApplicationsPage() {
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery<Application[]>({
     queryKey: ["admin-applications", search],
     queryFn: async () => {
@@ -46,9 +42,12 @@ export default function ApplicationsPage() {
       );
       return res.data?.data ?? [];
     },
+    refetchInterval: 10000, // auto-refetch every 10s
+    refetchOnWindowFocus: true,
+    staleTime: 5000,
   });
 
-  // Delete application mutation
+  // Delete application
   const deleteMutation = useMutation<void, unknown, string>({
     mutationFn: async (id: string) => {
       await axiosAuth.delete(`/api/careers/applications/${encodeURIComponent(id)}`);
@@ -59,7 +58,11 @@ export default function ApplicationsPage() {
   });
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 space-y-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="p-6 space-y-6"
+    >
       {/* HEADER */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Applications</h1>
@@ -90,7 +93,7 @@ export default function ApplicationsPage() {
                 variant="outline"
                 size="sm"
                 className="mt-2"
-                onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-applications"] })}
+                onClick={() => refetch()}
               >
                 Retry
               </Button>
@@ -112,7 +115,7 @@ export default function ApplicationsPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Job Title</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Submitted At</TableHead>
+                    <TableHead>Submitted</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -122,16 +125,33 @@ export default function ApplicationsPage() {
                     <TableRow key={app._id} className="hover:bg-gray-50">
                       <TableCell>{app.applicantName}</TableCell>
                       <TableCell>{app.applicantEmail}</TableCell>
-                      <TableCell>{app.jobTitle}</TableCell>
+                      <TableCell>{app.jobTitle || "—"}</TableCell>
                       <TableCell className="capitalize">{app.status}</TableCell>
-                      <TableCell>{new Date(app.submittedAt).toLocaleDateString()}</TableCell>
                       <TableCell>
+                        {new Date(app.submittedAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="flex gap-2">
+                        {/* View button */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedApp(app);
+                            setIsModalOpen(true);
+                          }}
+                        >
+                          <Eye size={16} />
+                        </Button>
+
+                        {/* Delete button */}
                         <Button
                           variant="destructive"
                           size="sm"
                           disabled={deleteMutation.isPending}
                           onClick={() => {
-                            if (confirm("Are you sure you want to delete this application?")) {
+                            if (
+                              confirm("Are you sure you want to delete this application?")
+                            ) {
                               deleteMutation.mutate(app._id);
                             }
                           }}
@@ -147,6 +167,17 @@ export default function ApplicationsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* ✅ Modal integration */}
+      <ApplicationModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedApp(null);
+        }}
+        application={selectedApp}
+        onSaved={() => queryClient.invalidateQueries({ queryKey: ["admin-applications"] })}
+      />
     </motion.div>
   );
 }

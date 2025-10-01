@@ -8,33 +8,35 @@ let bucket = null;
 let endpoint = null;
 
 /**
- * Initialize R2 client lazily (safe to call multiple times).
+ * Initialize Cloudflare R2 client lazily.
+ * Safe to call multiple times; reuses existing client if already initialized.
+ * @returns {boolean} true if initialized successfully
  */
 export function initR2Uploader() {
   if (r2Client) return true;
 
   const {
-    CLOUDFLARE_R2_ENDPOINT,
-    CLOUDFLARE_R2_KEY,
-    CLOUDFLARE_R2_SECRET,
-    CLOUDFLARE_R2_BUCKET,
+    R2_ENDPOINT,
+    R2_ACCESS_KEY_ID,
+    R2_SECRET_ACCESS_KEY,
+    R2_BUCKET,
   } = process.env;
 
-  if (!CLOUDFLARE_R2_ENDPOINT || !CLOUDFLARE_R2_KEY || !CLOUDFLARE_R2_SECRET || !CLOUDFLARE_R2_BUCKET) {
-    logger.warn("⚠️ R2 uploader not configured. Missing env vars.");
+  if (!R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET) {
+    logger.warn("⚠️ R2 uploader not configured. Missing environment variables.");
     return false;
   }
 
-  endpoint = CLOUDFLARE_R2_ENDPOINT.replace(/\/$/, "");
-  bucket = CLOUDFLARE_R2_BUCKET;
+  endpoint = R2_ENDPOINT.replace(/\/$/, "");
+  bucket = R2_BUCKET;
 
   try {
     r2Client = new S3Client({
       endpoint,
       region: "auto",
       credentials: {
-        accessKeyId: CLOUDFLARE_R2_KEY,
-        secretAccessKey: CLOUDFLARE_R2_SECRET,
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
       },
       forcePathStyle: false,
     });
@@ -42,17 +44,20 @@ export function initR2Uploader() {
     logger.info(`✅ R2 uploader initialized (bucket="${bucket}", endpoint="${endpoint}")`);
     return true;
   } catch (err) {
-    logger.error(`❌ Failed to initialize R2 uploader: ${err.message}`);
+    logger.error(`❌ Failed to initialize R2 uploader: ${err?.message ?? err}`);
+    r2Client = null;
+    bucket = null;
+    endpoint = null;
     return false;
   }
 }
 
 /**
- * Upload a file buffer to R2 and return a signed URL for secure download
- * @param {Buffer|Uint8Array|string} fileBuffer
- * @param {string} fileName
- * @param {string} [folder]
- * @param {number} [expiresIn=3600] URL expiration in seconds (default 1 hour)
+ * Upload a file to R2 and generate a signed URL
+ * @param {Buffer|Uint8Array|string} fileBuffer - File content
+ * @param {string} fileName - Original file name
+ * @param {string} [folder=""] - Optional folder path in bucket
+ * @param {number} [expiresIn=3600] - Signed URL expiration in seconds (default 1 hour)
  * @returns {Promise<{ key: string, signedUrl: string, result: object }>}
  */
 export async function uploadFileToR2(fileBuffer, fileName, folder = "", expiresIn = 3600) {
@@ -66,10 +71,11 @@ export async function uploadFileToR2(fileBuffer, fileName, folder = "", expiresI
   }
 
   const timestamp = Date.now();
-  const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const sanitizedName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 240);
   const key = folder ? `${folder}/${timestamp}-${sanitizedName}` : `${timestamp}-${sanitizedName}`;
 
   try {
+    // Upload the file
     const result = await r2Client.send(
       new PutObjectCommand({
         Bucket: bucket,
@@ -78,14 +84,23 @@ export async function uploadFileToR2(fileBuffer, fileName, folder = "", expiresI
       })
     );
 
-    // Generate a signed URL for secure access
-    const command = new GetObjectCommand({ Bucket: bucket, Key: key });
-    const signedUrl = await getSignedUrl(r2Client, command, { expiresIn });
+    // Generate signed URL
+    const signedUrl = await getSignedUrl(
+      r2Client,
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
+      { expiresIn }
+    );
 
-    logger.info(`📤 R2 upload success: ${key} → signed URL (expires in ${expiresIn}s)`);
+    logger.info(`📤 R2 upload successful: ${key} → signed URL (expires in ${expiresIn}s)`);
     return { key, signedUrl, result };
   } catch (err) {
-    logger.error(`❌ [R2] Upload failed for key="${key}": ${err.message}`);
+    logger.error(`❌ R2 upload failed for key="${key}": ${err?.message ?? err}`);
     throw err;
   }
 }
+
+/* --------------------------- Default Export --------------------------- */
+export default {
+  initR2Uploader,
+  uploadFileToR2,
+};

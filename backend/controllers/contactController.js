@@ -1,13 +1,11 @@
 // backend/controllers/contactController.js
 import { validationResult } from "express-validator";
 import Contact from "../models/Contact.js";
-import { sendEmail } from "../utils/mailer.js";
+import mailer from "../utils/mailer.js";   // ✅ use the new mailer
 import logger from "../config/logger.js";
-
 
 /**
  * Escape text for safe insertion into HTML email bodies.
- * We still store raw trimmed values in the DB, but escape for emails.
  */
 function escapeHtml(input = "") {
   return String(input)
@@ -18,9 +16,6 @@ function escapeHtml(input = "") {
     .replace(/'/g, "&#039;");
 }
 
-/**
- * Basic email candidate sanity check (not RFC-perfect, but good enough to avoid accidental bad recipients)
- */
 function looksLikeEmail(v) {
   return typeof v === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
 }
@@ -32,65 +27,62 @@ function looksLikeEmail(v) {
  */
 export const submitContactForm = async (req, res) => {
   try {
-    // express-validator middleware should run before this handler.
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       logger.warn("❌ Contact form validation failed", { ip: req.ip, errors: errors.array() });
       return res.status(400).json({ success: false, errors: errors.array() });
     }
 
-    // Normalize incoming values (trim everything)
-    const rawName = req.body?.name ?? "";
-    const rawEmail = req.body?.email ?? "";
-    const rawPhone = req.body?.phone ?? "";
-    const rawMessage = req.body?.message ?? "";
-    const rawProducts = req.body?.products ?? "";
-    const rawNotes = req.body?.notes ?? "";
-    const rawType = req.body?.type ?? "contact";
+    // Normalize
+    const {
+      name: rawName = "",
+      email: rawEmail = "",
+      phone: rawPhone = "",
+      message: rawMessage = "",
+      products: rawProducts = "",
+      notes: rawNotes = "",
+      type: rawType = "contact",
+    } = req.body;
 
-    const name = String(rawName).trim();
-    const email = String(rawEmail).trim();
-    const phone = String(rawPhone).trim();
-    const message = String(rawMessage).trim();
-    const products = String(rawProducts).trim();
-    const notes = String(rawNotes).trim();
-    const type = String(rawType).trim().toLowerCase();
+    const name = rawName.trim();
+    const email = rawEmail.trim();
+    const phone = rawPhone.trim();
+    const message = rawMessage.trim();
+    const products = rawProducts.trim();
+    const notes = rawNotes.trim();
+    const type = rawType.trim().toLowerCase();
 
     const isQuote = type === "quote";
 
-    // Build DB document
+    // DB doc
     const contactData = {
       name,
       email,
-      phone: phone || "",
-      message: message || "",
-      products: products || "",
-      notes: notes || "",
+      phone,
+      message,
+      products,
+      notes,
       type: isQuote ? "quote" : "contact",
       ip: req.ip,
       userAgent: req.get("User-Agent") || "",
       receivedAt: new Date(),
     };
 
-    // Persist to MongoDB
     const contactMessage = await Contact.create(contactData);
 
-    // Determine who should receive the email
-    // Prefer explicit config vars CONTACT_RECEIVER / QUOTE_RECEIVER, then fallback to FROM/SMTP user, then a hard-coded fallback.
-    const contactReceiver = process.env.CONTACT_RECEIVER || process.env.CONTACT_RECEIVER_CONTACT;
-    const quoteReceiver = process.env.QUOTE_RECEIVER || process.env.CONTACT_RECEIVER_QUOTE;
+    // Recipient
+    const contactReceiver = process.env.CONTACT_RECEIVER;
+    const quoteReceiver = process.env.QUOTE_RECEIVER;
     let toEmail = isQuote ? quoteReceiver : contactReceiver;
 
     if (!toEmail || !looksLikeEmail(toEmail)) {
-      // fallback chain
       if (looksLikeEmail(process.env.FROM_EMAIL)) toEmail = process.env.FROM_EMAIL;
       else if (looksLikeEmail(process.env.SMTP_USER)) toEmail = process.env.SMTP_USER;
       else toEmail = "info@faharidairies.co.ke";
     }
 
-    // Build HTML and plain-text bodies (escaped)
+    // Bodies
     const esc = (s) => escapeHtml(s || "");
-
     const subject = isQuote ? "📩 Fahari — New Quote Request" : "📩 Fahari — New Contact Message";
 
     const htmlBody = isQuote
@@ -131,9 +123,9 @@ export const submitContactForm = async (req, res) => {
           `Message: ${message}`,
         ].join("\n");
 
-    // Fire-and-forget email send: log errors but do not prevent the API from returning success (DB saved).
+    // ✅ Use the new mailer
     try {
-      await sendEmail({
+      await mailer.sendEmail({
         to: toEmail,
         subject,
         text: textBody,
@@ -141,7 +133,6 @@ export const submitContactForm = async (req, res) => {
       });
       logger.info("📧 Contact email routed", { to: toEmail, type: isQuote ? "quote" : "contact", id: contactMessage._id });
     } catch (mailErr) {
-      // log details for troubleshooting — do not expose internals to client
       logger.error("❌ Failed to send contact email", {
         to: toEmail,
         type: isQuote ? "quote" : "contact",
@@ -152,14 +143,14 @@ export const submitContactForm = async (req, res) => {
 
     logger.info(`✅ ${isQuote ? "Quote" : "Contact"} form saved`, { id: contactMessage._id, ip: req.ip });
 
-    // Respond success (201 created)
     return res.status(201).json({
       success: true,
-      message: isQuote ? "Thank you! Your quote request has been received." : "Thank you for contacting us! We'll get back to you shortly.",
+      message: isQuote
+        ? "Thank you! Your quote request has been received."
+        : "Thank you for contacting us! We'll get back to you shortly.",
       data: contactMessage,
     });
   } catch (error) {
-    // Defensive logging — do not leak internals to the client.
     logger.error("❌ submitContactForm error", { err: error?.stack ?? String(error) });
     return res.status(500).json({
       success: false,

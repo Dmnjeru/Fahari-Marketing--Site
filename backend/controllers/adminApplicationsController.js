@@ -90,7 +90,7 @@ export const updateApplicationStatus = async (req, res) => {
           html: `<p>Hi ${app.fullName},</p>
                  <p>Your application status has been updated to <strong>${app.status}</strong>.</p>
                  ${notes ? `<p>Notes: ${notes}</p>` : ""}
-                 <p>Regards,<br/>Fahari HR</p>`,
+                 <p>Regards,<br/>Fahari Yoghurt & Dairies</p>`,
         });
       } catch (err) {
         logger.warn(`Failed to notify candidate for app ${app._id}: ${err?.message ?? err}`);

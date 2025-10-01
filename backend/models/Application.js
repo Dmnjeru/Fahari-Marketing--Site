@@ -7,9 +7,20 @@ const { Schema } = mongoose;
 const cvSubSchema = new Schema(
   {
     fileName: { type: String, required: true, trim: true },
-    fileUrl: { type: String, required: true, trim: true }, // URL or local path
+    fileUrl: { type: String, required: true, trim: true }, // R2 URL or local path
     fileType: { type: String, trim: true },
     fileSize: { type: Number, min: 0 }, // in bytes
+  },
+  { _id: false }
+);
+
+/* -------------------- Optional Attachment Subdocument -------------------- */
+const attachmentSubSchema = new Schema(
+  {
+    fileName: { type: String, required: true, trim: true },
+    fileUrl: { type: String, required: true, trim: true },
+    fileType: { type: String, trim: true },
+    fileSize: { type: Number, min: 0 },
   },
   { _id: false }
 );
@@ -51,11 +62,17 @@ const applicationSchema = new Schema(
       type: cvSubSchema,
       required: true,
     },
+    attachments: {
+      type: [attachmentSubSchema],
+      default: [],
+    },
+    /* -------------------- Candidate Answers -------------------- */
     customAnswers: {
       type: [
         {
+          questionId: { type: Schema.Types.ObjectId, ref: "Job.dynamicQuestions" },
           question: { type: String, trim: true },
-          answer: { type: String, trim: true },
+          answer: { type: Schema.Types.Mixed, trim: true }, // string or array for checkboxes
         },
       ],
       default: [],
@@ -86,12 +103,12 @@ const applicationSchema = new Schema(
     source: {
       type: String,
       trim: true,
-      default: "careers_page", // could also be "referral", "linkedin", etc.
+      default: "careers_page",
       index: true,
     },
     emailSent: {
       type: Boolean,
-      default: false, // track if candidate received email confirmation
+      default: false,
     },
   },
   {
@@ -107,6 +124,7 @@ applicationSchema.index({
   email: "text",
   coverLetter: "text",
   notes: "text",
+  "customAnswers.answer": "text",
 });
 
 const Application =

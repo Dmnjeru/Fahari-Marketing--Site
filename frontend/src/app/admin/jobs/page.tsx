@@ -1,4 +1,4 @@
-//frontend\src\app\admin\jobs\page.tsx
+// frontend/src/app/admin/jobs/page.tsx
 "use client";
 
 import * as React from "react";
@@ -36,13 +36,10 @@ export default function JobsPage(): React.ReactElement {
 
   const queryClient = useQueryClient();
 
-  // NEXT_PUBLIC_API_URL should include origin and optional /api suffix,
-  // e.g. "http://localhost:5000/api"
   const rawApi = process.env.NEXT_PUBLIC_API_URL ?? "";
-  const API_BASE = rawApi.replace(/\/$/, ""); // remove trailing slash
-  const SOCKET_ORIGIN = API_BASE.replace(/\/api\/?$/, ""); // strip /api for socket origin
+  const API_BASE = rawApi.replace(/\/$/, "");
+  const SOCKET_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 
-  // Keep a single socket instance per mounted JobsPage
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
@@ -81,7 +78,6 @@ export default function JobsPage(): React.ReactElement {
     sock.on("job-updated", handleJobUpdated);
     sock.on("job-deleted", handleJobDeleted);
     sock.on("connect_error", (err: unknown) => {
-       
       console.warn("Socket connect error:", err);
     });
 
@@ -91,13 +87,12 @@ export default function JobsPage(): React.ReactElement {
       try {
         sock.disconnect();
       } catch {
-        // ignore disconnect errors
+        /* ignore */
       }
       socketRef.current = null;
     };
   }, [SOCKET_ORIGIN, queryClient, search]);
 
-  // useQuery with minimal options to avoid TS overload issues.
   const { data: jobsData, isLoading, isError, error } = useQuery<Job[], Error>({
     queryKey: ["admin-jobs", search],
     queryFn: async (): Promise<Job[]> => {
@@ -111,17 +106,14 @@ export default function JobsPage(): React.ReactElement {
         if (axios.isAxiosError(err) && (err as AxiosError).response?.status === 401) {
           setNotAuthorized(true);
         }
-        // rethrow as Error so react-query marks query as errored
         throw err instanceof Error ? err : new Error("Failed to fetch jobs");
       }
     },
-    // Add only the core, well-typed options to avoid overload discrimination.
     staleTime: 1000 * 60 * 5,
   });
 
   const jobs: Job[] = Array.isArray(jobsData) ? jobsData : [];
 
-  // Delete job mutation
   const deleteJobMutation = useMutation<void, Error, string>({
     mutationFn: async (id: string) => {
       if (!id) throw new Error("Missing job id");
@@ -137,7 +129,6 @@ export default function JobsPage(): React.ReactElement {
       queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
     },
     onError: (e: Error) => {
-       
       console.error("Delete job failed:", e);
     },
   });
@@ -176,14 +167,14 @@ export default function JobsPage(): React.ReactElement {
           {isError && !notAuthorized && (
             <div className="text-red-600">
               <p>Failed to load jobs.</p>
-              {axios.isAxiosError(error as unknown) ? (
-                <p className="text-sm">
-                  {((error as AxiosError<{ message?: string }>)?.response?.data?.message) ??
-                    (error instanceof Error ? error.message : "Unknown error")}
-                </p>
-              ) : (
-                <p className="text-sm">{error instanceof Error ? error.message : "Unknown error"}</p>
-              )}
+              <p className="text-sm">
+                {axios.isAxiosError(error as unknown)
+                  ? ((error as AxiosError<{ message?: string }>)?.response?.data?.message) ??
+                    (error instanceof Error ? error.message : "Unknown error")
+                  : error instanceof Error
+                  ? error.message
+                  : "Unknown error"}
+              </p>
 
               <Button
                 variant="outline"
@@ -208,6 +199,8 @@ export default function JobsPage(): React.ReactElement {
                     <TH>Type</TH>
                     <TH>Status</TH>
                     <TH>Deadline</TH>
+                    <TH>Applications</TH>
+                    <TH>Views</TH>
                     <TH>Actions</TH>
                   </TableRow>
                 </TableHeader>

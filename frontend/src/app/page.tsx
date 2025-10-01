@@ -101,7 +101,7 @@ function Hero() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { delay: 0.2 } }}
             >
-              Fahari Yoghurt is lovingly made from local milk, packed with natural flavour and goodness.
+             Fahari Yoghurt is carefully crafted from the freshest locally sourced milk, bringing you a rich, creamy taste that is naturally full of flavour and wholesome goodness. Made with love and a commitment to quality, our yoghurt not only nourishes your body but also supports local farmers and communities. Every cup of Fahari Yoghurt delivers a delicious balance of freshness, nutrition, and authentic dairy taste — the perfect choice for families who value health, quality, and natural goodness.
             </motion.p>
             <div className="mt-8 flex flex-wrap gap-4">
               <a

@@ -5,20 +5,12 @@ import dotenv from "dotenv";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-/**
- * Robust sendEmail helper
- * - Loads backend/.env automatically if SMTP env not present
- * - Fail-fast in production if SMTP creds missing
- * - Verify transporter at startup (throws in production)
- * - Exports named + default sendEmail
- */
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-// If SMTP env looks missing, attempt to load backend/.env (helps when running from project root)
+// Load backend/.env if SMTP env not present
 if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
   try {
-    const envPath = join(__dirname, "..", ".env"); // backend/.env
+    const envPath = join(__dirname, "..", ".env");
     dotenv.config({ path: envPath });
     logger.debug && logger.debug(`dotenv: attempted to load env from ${envPath}`);
   } catch (err) {
@@ -47,11 +39,9 @@ if (!SMTP_PORT) missing.push("SMTP_PORT");
 if (!SMTP_USER) missing.push("SMTP_USER");
 if (!SMTP_PASS) missing.push("SMTP_PASS");
 
-// If missing critical fields, decide behavior: fail in prod, log in dev
 if (missing.length > 0) {
   const msg = `Missing SMTP credentials: ${missing.join(", ")}.`;
   if (isProd) {
-    // In production we want to fail fast to avoid silent broken email pipeline
     logger.error(`❌ ${msg} Aborting startup (production requires SMTP).`);
     throw new Error(msg);
   } else {
@@ -61,7 +51,6 @@ if (missing.length > 0) {
 
 let transporter = null;
 
-// Create transporter only if we have credentials
 if (missing.length === 0) {
   const portNum = Number(SMTP_PORT || 465);
   const secure = SMTP_SECURE === "true" || portNum === 465;
@@ -75,16 +64,15 @@ if (missing.length === 0) {
       pass: SMTP_PASS,
     },
     tls: {
-      // in production enforce certificate validity
-      rejectUnauthorized: isProd,
+      rejectUnauthorized: isProd, // enforce cert validity in prod
     },
     connectionTimeout: Number(SMTP_CONNECTION_TIMEOUT_MS ?? 30000),
     greetingTimeout: 30000,
     socketTimeout: 60000,
-    debug: isDev,
+    debug: isDev, // never enable debug in prod
   });
 
-  // Verify transporter on startup. Fail-fast in production.
+  // Verify transporter on startup
   (async () => {
     try {
       await transporter.verify();
@@ -92,14 +80,38 @@ if (missing.length === 0) {
     } catch (err) {
       logger.error(`❌ SMTP verification failed: ${(err && err.message) || err}`);
       if (isProd) {
-        // crash the process so orchestrator can restart with corrected env
         throw new Error(`SMTP verification failed in production: ${(err && err.message) || err}`);
       } else {
         logger.warn("Continuing in dev mode despite SMTP verification failure (log-only).");
-        transporter = null; // treat as log-only
+        transporter = null;
       }
     }
   })();
+}
+
+/**
+ * Retry wrapper for transient errors
+ */
+async function attemptSend(mailOptions, retries = 3, delay = 5000) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (err) {
+      const code = err?.responseCode || err?.code;
+      logger.warn(`⚠️ Email send failed (attempt ${i + 1}/${retries}): ${err.message}`);
+
+      // Retry only on transient errors
+      if (code === 451 || code === "ETIMEDOUT" || code === "ECONNRESET") {
+        if (i < retries - 1) {
+          logger.info(`⏳ Retrying in ${delay / 1000}s...`);
+          await new Promise((res) => setTimeout(res, delay));
+          continue;
+        }
+      }
+      throw err;
+    }
+  }
 }
 
 /**
@@ -109,26 +121,35 @@ if (missing.length === 0) {
  * @param {string} opts.subject
  * @param {string} [opts.text]
  * @param {string} [opts.html]
- * @param {string} [opts.from]
  */
-export async function sendEmail({ to, subject, text, html, from } = {}) {
+export async function sendEmail({ to, subject, text, html } = {}) {
   if (!to || !subject) {
     throw new Error("sendEmail: 'to' and 'subject' are required");
   }
 
-  // If transporter not present (dev/log-only), log and return
+  // Block sending to same noreply address
+  const noreply = FROM_EMAIL || SMTP_USER || "noreply@faharidairies.co.ke";
+  if (
+    (Array.isArray(to) && to.includes(noreply)) ||
+    (!Array.isArray(to) && to === noreply)
+  ) {
+    logger.error("❌ Attempted to send email TO noreply address — blocked.");
+    throw new Error("Invalid recipient: cannot send to noreply address.");
+  }
+
+  // If transporter not present
   if (!transporter) {
-    logger.info("📧 [LOG ONLY] Email would be sent (transporter not configured):", {
+    logger.info("📧 [LOG ONLY] Email would be sent:", {
       to,
       subject,
-      from: from ?? FROM_EMAIL ?? SMTP_USER,
+      from: noreply,
     });
     logger.debug && logger.debug("Email payload:", { text, html });
     return { logged: true };
   }
 
   const mailOptions = {
-    from: from ?? FROM_EMAIL ?? `"Fahari Yoghurt" <${SMTP_USER}>`,
+    from: `"Fahari Yoghurt" <${noreply}>`,
     to,
     subject,
     text,
@@ -136,7 +157,7 @@ export async function sendEmail({ to, subject, text, html, from } = {}) {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
+    const info = await attemptSend(mailOptions, 3, 5000);
     logger.info(`📧 Email sent: ${subject} → ${Array.isArray(to) ? to.join(",") : to} (id=${info.messageId})`);
 
     if (isDev) {
@@ -147,7 +168,10 @@ export async function sendEmail({ to, subject, text, html, from } = {}) {
 
     return info;
   } catch (err) {
-    logger.error(`❌ Failed to send email: ${(err && err.message) || err}`, { subject, to });
+    logger.error(`❌ Failed to send email permanently: ${(err && err.message) || err}`, {
+      subject,
+      to,
+    });
     throw err;
   }
 }

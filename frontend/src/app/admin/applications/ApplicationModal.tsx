@@ -25,6 +25,7 @@ export interface Application {
   submittedAt: string;
   resumeUrl?: string;
   coverLetter?: string;
+  answers?: { question: string; answer: string }[]; // ✅ added
 }
 
 interface Props {
@@ -57,7 +58,7 @@ export default function ApplicationModal({
       const res = await axios.patch(
         `${API_BASE}/api/careers/applications/${application._id}`,
         { status: newStatus },
-        { withCredentials: true } // ✅ send cookies/tokens
+        { withCredentials: true }
       );
       return res.data;
     },
@@ -130,13 +131,32 @@ export default function ApplicationModal({
             </p>
           )}
 
+          {/* ✅ Custom Questions & Answers */}
+          {application.answers && application.answers.length > 0 && (
+            <div className="mt-4">
+              <h3 className="font-semibold mb-2">Custom Questions</h3>
+              <div className="space-y-3">
+                {application.answers.map((qa, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-md bg-gray-50 border border-gray-200"
+                  >
+                    <p className="font-medium text-sm">{qa.question}</p>
+                    <p className="text-gray-700">
+                      {qa.answer || "No answer provided"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <Label>Status</Label>
-           <Select
-  value={status}
-  onValueChange={(v: string) => setStatus(v as Application["status"])}
->
-
+            <Select
+              value={status}
+              onValueChange={(v: string) => setStatus(v as Application["status"])}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>

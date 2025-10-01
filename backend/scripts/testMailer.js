@@ -1,30 +1,30 @@
-import nodemailer from "nodemailer";
+// backend/scripts/testMailer.js
 import dotenv from "dotenv";
+import mailer from "../utils/mailer.js";
+
 dotenv.config();
 
-async function testEmail() {
+async function runTest() {
+  console.log("🔄 Starting Mailer Test...");
+
+  const testRecipient = process.env.TEST_EMAIL || "njerudennis86@gmail.com";
+
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: false, // true for 465
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
+    const info = await mailer.sendEmail({
+      to: testRecipient,
+      subject: "✅ Fahari Mailer Test",
+      text: "This is a test email from Fahari Yoghurt mailer system.",
+      html: "<p>This is a <b>test email</b> from Fahari Yoghurt mailer system.</p>",
     });
 
-    const info = await transporter.sendMail({
-      from: `"Fahari Test" <${process.env.SMTP_USER}>`,
-      to: process.env.SMTP_USER,
-      subject: "SMTP Test Email",
-      text: "Hello! This is a test email from Fahari backend.",
-    });
-
-    console.log("✅ Email sent:", info.messageId);
+    if (info?.logged) {
+      console.log(`📋 Mail logged only (no SMTP). To=${testRecipient}`);
+    } else {
+      console.log("📧 Mailer responded:", info);
+    }
   } catch (err) {
-    console.error("❌ Email failed:", err);
+    console.error("🔥 Test script crashed:", err.message || err);
   }
 }
 
-testEmail();
+runTest();

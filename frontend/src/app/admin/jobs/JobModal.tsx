@@ -6,11 +6,24 @@ import { useEffect, useRef, useState } from "react";
 import api from "@/lib/api";
 import axios, { type AxiosError } from "axios";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Save, Trash } from "lucide-react";
+import { X, Save, Trash, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+
+/**
+ * JobPayload expanded to include dynamicQuestions which the backend expects:
+ * dynamicQuestions: [{ questionText, type, options?, required? }]
+ */
+export interface DynamicQuestion {
+  // backend uses `questionText` and `type`; keep shape compatible
+  questionText: string;
+  type: "text" | "textarea" | "radio" | "checkbox" | "select" | "file";
+  required?: boolean;
+  options?: string[]; // for radio/select/checkbox
+  // addedBy is handled server-side if needed
+}
 
 export interface JobPayload {
   title: string;
@@ -25,9 +38,10 @@ export interface JobPayload {
   tags?: string[];
   applicationDeadline?: string | null;
   status?: "active" | "closed" | "draft";
+  dynamicQuestions?: DynamicQuestion[]; // NEW
 }
 
-export type Job = JobPayload & { _id?: string; createdAt?: string };
+export type Job = JobPayload & { _id?: string; createdAt?: string; dynamicQuestions?: DynamicQuestion[] };
 
 interface Props {
   isOpen: boolean;
@@ -80,6 +94,9 @@ export default function JobModal({ isOpen, onClose, initialData = null, onSaved 
   const [applicationDeadline, setApplicationDeadline] = useState<string | null>(null);
   const [status, setStatus] = useState<JobPayload["status"]>("active");
 
+  // dynamic questions state
+  const [dynamicQuestions, setDynamicQuestions] = useState<DynamicQuestion[]>([]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -102,6 +119,17 @@ export default function JobModal({ isOpen, onClose, initialData = null, onSaved 
       initialData?.applicationDeadline ? formatDateForInput(initialData.applicationDeadline) : null
     );
     setStatus(initialData?.status ?? "active");
+    // initialize dynamicQuestions from initialData if present
+    setDynamicQuestions(
+      (initialData?.dynamicQuestions ?? []).map((q) => ({
+        // Safely support both modern shape (questionText) and legacy shape (question)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        questionText: q.questionText ?? ( (q as any).question ?? "" ),
+        type: q.type ?? "text",
+        required: q.required ?? false,
+        options: Array.isArray(q.options) ? q.options.slice() : [],
+      }))
+    );
     setErrors({});
     // focus after paint
     setTimeout(() => firstInputRef.current?.focus(), 50);
@@ -131,6 +159,19 @@ export default function JobModal({ isOpen, onClose, initialData = null, onSaved 
       today.setHours(0, 0, 0, 0);
       if (d < today) e.applicationDeadline = "Deadline cannot be in the past";
     }
+
+    // validate dynamic questions
+    dynamicQuestions.forEach((q, idx) => {
+      if (!q.questionText || !q.questionText.trim()) {
+        e[`dq.${idx}.questionText`] = `Question #${idx + 1} text is required`;
+      }
+      if (["select", "radio", "checkbox"].includes(q.type)) {
+        if (!q.options || q.options.length === 0) {
+          e[`dq.${idx}.options`] = `Question #${idx + 1} needs at least one option`;
+        }
+      }
+    });
+
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -191,6 +232,12 @@ export default function JobModal({ isOpen, onClose, initialData = null, onSaved 
       tags: tags.filter(Boolean),
       applicationDeadline: applicationDeadline ? new Date(applicationDeadline).toISOString() : null,
       status,
+      dynamicQuestions: dynamicQuestions.map((q) => ({
+        questionText: q.questionText?.trim(),
+        type: q.type,
+        required: Boolean(q.required),
+        options: Array.isArray(q.options) ? q.options.filter(Boolean) : undefined,
+      })),
     };
 
     try {
@@ -224,6 +271,56 @@ export default function JobModal({ isOpen, onClose, initialData = null, onSaved 
     if (!isSaving) onClose();
   };
 
+  // Dynamic questions helpers
+  const addQuestion = () => {
+    setDynamicQuestions((prev) => [
+      ...prev,
+      { questionText: "", type: "text", required: false, options: [] },
+    ]);
+  };
+
+  const updateQuestion = (idx: number, patch: Partial<DynamicQuestion>) => {
+    setDynamicQuestions((prev) => {
+      const copy = prev.slice();
+      copy[idx] = { ...copy[idx], ...patch };
+      // ensure options array exists for option-based types
+      if (["select", "radio", "checkbox"].includes(copy[idx].type) && !Array.isArray(copy[idx].options)) {
+        copy[idx].options = [];
+      }
+      if (!["select", "radio", "checkbox"].includes(copy[idx].type)) {
+        copy[idx].options = copy[idx].options ?? [];
+      }
+      return copy;
+    });
+  };
+
+  const removeQuestion = (idx: number) => {
+    setDynamicQuestions((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const addOptionToQuestion = (qIdx: number, option: string) => {
+    const val = String(option).trim();
+    if (!val) return;
+    setDynamicQuestions((prev) => {
+      const copy = prev.slice();
+      const q = { ...copy[qIdx] };
+      q.options = Array.isArray(q.options) ? q.options.slice() : [];
+      q.options.push(val);
+      copy[qIdx] = q;
+      return copy;
+    });
+  };
+
+  const removeOptionFromQuestion = (qIdx: number, optIdx: number) => {
+    setDynamicQuestions((prev) => {
+      const copy = prev.slice();
+      const q = { ...copy[qIdx] };
+      q.options = Array.isArray(q.options) ? q.options.filter((_, i) => i !== optIdx) : [];
+      copy[qIdx] = q;
+      return copy;
+    });
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -231,7 +328,7 @@ export default function JobModal({ isOpen, onClose, initialData = null, onSaved 
       <div className="absolute inset-0 bg-black/50" onClick={handleClose} />
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-3xl bg-white rounded-2xl shadow-lg overflow-auto max-h-[90vh]"
+        className="relative z-10 w-full max-w-4xl bg-white rounded-2xl shadow-lg overflow-auto max-h-[90vh]"
         aria-labelledby="job-modal-title"
       >
         <div className="flex items-center justify-between p-6 border-b">
@@ -370,6 +467,98 @@ export default function JobModal({ isOpen, onClose, initialData = null, onSaved 
             </div>
           </div>
 
+          {/* Dynamic Questions */}
+          <div>
+            <div className="flex items-center justify-between">
+              <Label>Application Questions (optional)</Label>
+              <Button type="button" onClick={addQuestion} variant="ghost" className="flex items-center gap-2">
+                <Plus size={14} /> Add question
+              </Button>
+            </div>
+
+            {dynamicQuestions.length === 0 && (
+              <p className="text-sm text-muted-foreground mt-2">No custom questions — use the default application fields (CV, cover letter, email).</p>
+            )}
+
+            <div className="space-y-3 mt-3">
+              {dynamicQuestions.map((q, idx) => (
+                <div key={idx} className="border rounded p-3 bg-gray-50">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <Label>Question #{idx + 1}</Label>
+                      <Input
+                        value={q.questionText}
+                        onChange={(e) => updateQuestion(idx, { questionText: e.target.value })}
+                        placeholder="e.g. Why do you want this role?"
+                      />
+                      {errors[`dq.${idx}.questionText`] && (
+                        <p className="text-xs text-red-600 mt-1">{errors[`dq.${idx}.questionText`]}</p>
+                      )}
+
+                      <div className="flex gap-2 items-center mt-2">
+                        <div>
+                          <Label className="text-xs">Type</Label>
+                          <select
+                            value={q.type}
+                            onChange={(e) =>
+                              updateQuestion(idx, { type: e.target.value as DynamicQuestion["type"] })
+                            }
+                            className="border rounded px-2 py-1 w-full"
+                          >
+                            <option value="text">Text (single line)</option>
+                            <option value="textarea">Long answer</option>
+                            <option value="select">Select (single choice)</option>
+                            <option value="radio">Radio (single choice)</option>
+                            <option value="checkbox">Checkbox (multiple choice)</option>
+                            <option value="file">File upload</option>
+                          </select>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <input
+                            id={`dq-${idx}-required`}
+                            type="checkbox"
+                            checked={Boolean(q.required)}
+                            onChange={(e) => updateQuestion(idx, { required: e.target.checked })}
+                            className="w-4 h-4"
+                          />
+                          <Label htmlFor={`dq-${idx}-required`} className="text-sm">Required</Label>
+                        </div>
+                      </div>
+
+                      {/* options editor for select / radio / checkbox */}
+                      {["select", "radio", "checkbox"].includes(q.type) && (
+                        <div className="mt-3">
+                          <Label className="text-sm">Options</Label>
+                          <OptionEditor
+                            options={q.options ?? []}
+                            onAdd={(val) => addOptionToQuestion(idx, val)}
+                            onRemove={(optIdx) => removeOptionFromQuestion(idx, optIdx)}
+                          />
+                          {errors[`dq.${idx}.options`] && (
+                            <p className="text-xs text-red-600 mt-1">{errors[`dq.${idx}.options`]}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="ml-3 flex-shrink-0 flex flex-col gap-2">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={() => removeQuestion(idx)}
+                        className="self-end"
+                        title="Remove question"
+                      >
+                        <Trash size={14} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="flex items-center justify-end gap-3 mt-4 border-t pt-4">
             <Button variant="ghost" onClick={handleClose} disabled={isSaving}>
               Cancel
@@ -386,6 +575,71 @@ export default function JobModal({ isOpen, onClose, initialData = null, onSaved 
           </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Small internal OptionEditor component used for editing options per q       */
+/* -------------------------------------------------------------------------- */
+
+function OptionEditor({
+  options,
+  onAdd,
+  onRemove,
+}: {
+  options: string[];
+  onAdd: (value: string) => void;
+  onRemove: (index: number) => void;
+}) {
+  const [optInput, setOptInput] = useState("");
+
+  return (
+    <div>
+      <div className="flex gap-2 items-center">
+        <Input
+          value={optInput}
+          onChange={(e) => setOptInput(e.target.value)}
+          placeholder="Add option and press Add"
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              const v = optInput.trim();
+              if (v) {
+                onAdd(v);
+                setOptInput("");
+              }
+            }
+          }}
+        />
+        <Button
+          type="button"
+          onClick={() => {
+            const v = optInput.trim();
+            if (!v) return;
+            onAdd(v);
+            setOptInput("");
+          }}
+        >
+          Add
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mt-2">
+        {options.map((o, i) => (
+          <div key={i} className="px-2 py-1 bg-white border rounded flex items-center gap-2">
+            <span className="text-sm">{o}</span>
+            <button
+              type="button"
+              onClick={() => onRemove(i)}
+              className="text-xs text-red-600"
+              aria-label={`Remove option ${o}`}
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

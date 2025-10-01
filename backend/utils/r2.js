@@ -1,97 +1,144 @@
 // backend/utils/r2.js
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import logger from "../config/logger.js";
 
 let r2Client = null;
 let bucket = null;
+let endpoint = null;
 
 /**
- * Initialize Cloudflare R2 client
- * Should be called once during app startup
+ * Initialize Cloudflare R2 client lazily.
+ * Safe to call multiple times.
+ * @returns {boolean} true if initialized successfully
  */
 export function initR2() {
-  const {
-    CLOUDFLARE_R2_ENDPOINT,
-    CLOUDFLARE_R2_KEY,
-    CLOUDFLARE_R2_SECRET,
-    CLOUDFLARE_R2_BUCKET,
-  } = process.env;
+  if (r2Client) return true;
 
-  if (!CLOUDFLARE_R2_ENDPOINT || !CLOUDFLARE_R2_KEY || !CLOUDFLARE_R2_SECRET || !CLOUDFLARE_R2_BUCKET) {
-    logger.error("❌ R2: Missing required env variables. Skipping R2 initialization.");
+  const { R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET } = process.env;
+
+  if (!R2_ENDPOINT || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET) {
+    logger.warn("⚠️ R2 not initialized. Missing environment variables.");
     return false;
   }
+
+  endpoint = R2_ENDPOINT.replace(/\/$/, "");
+  bucket = R2_BUCKET;
 
   try {
     r2Client = new S3Client({
+      endpoint,
       region: "auto",
-      endpoint: CLOUDFLARE_R2_ENDPOINT,
       credentials: {
-        accessKeyId: CLOUDFLARE_R2_KEY,
-        secretAccessKey: CLOUDFLARE_R2_SECRET,
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
       },
+      forcePathStyle: false,
     });
 
-    bucket = CLOUDFLARE_R2_BUCKET;
-
-    logger.info(`✅ R2 initialized → bucket="${bucket}", endpoint="${CLOUDFLARE_R2_ENDPOINT}"`);
+    logger.info(`✅ R2 initialized (bucket="${bucket}", endpoint="${endpoint}")`);
     return true;
   } catch (err) {
-    logger.error("❌ Failed to initialize R2 client:", err);
+    logger.error("❌ Failed to initialize R2:", err?.message ?? err);
+    r2Client = null;
+    bucket = null;
+    endpoint = null;
     return false;
   }
 }
 
 /**
- * Upload file to Cloudflare R2
- * @param {string} key - Path/key to store object under
- * @param {Buffer|Uint8Array|string} body - File content
- * @param {string} contentType - MIME type
- * @returns {Promise<string>} File key (not public URL)
+ * Upload a file to R2 and return signed URL
+ * @param {Buffer|Uint8Array|string} fileBuffer
+ * @param {string} fileName
+ * @param {string} [folder=""]
+ * @param {number} [expiresIn=3600] - seconds
  */
-export async function uploadFileToR2(key, body, contentType) {
+export async function uploadFile(fileBuffer, fileName, folder = "", expiresIn = 3600) {
+  if (!fileBuffer || !fileName) throw new Error("uploadFile: fileBuffer and fileName are required");
+
   if (!r2Client) {
-    throw new Error("R2 not initialized. Call initR2() during server startup.");
+    const ok = initR2();
+    if (!ok) throw new Error("R2 client not initialized");
   }
 
-  try {
-    const command = new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: body,
-      ContentType: contentType,
-    });
+  const timestamp = Date.now();
+  const sanitizedName = String(fileName).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 240);
+  const key = folder ? `${folder}/${timestamp}-${sanitizedName}` : `${timestamp}-${sanitizedName}`;
 
-    await r2Client.send(command);
-    logger.info(`📤 Uploaded to R2: key="${key}"`);
-    return key; // Return just the key, not public URL
+  try {
+    // Upload
+    await r2Client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: fileBuffer,
+      })
+    );
+
+    // Signed URL
+    const signedUrl = await getSignedUrl(
+      r2Client,
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
+      { expiresIn }
+    );
+
+    logger.info(`📤 R2 upload success: ${key} → signed URL`);
+    return { key, signedUrl };
   } catch (err) {
-    logger.error(`❌ Failed to upload to R2: key="${key}", error=${err.message}`);
+    logger.error(`❌ R2 upload failed for key="${key}":`, err?.message ?? err);
     throw err;
   }
 }
 
 /**
- * Generate a signed URL for downloading a file from R2
- * @param {string} key - Object key in the bucket
- * @param {number} expiresIn - Expiration in seconds (default 1 hour)
- * @returns {Promise<string>} Signed URL
+ * Delete a file from R2
+ * @param {string} key
  */
-export async function getSignedUrlForR2(key, expiresIn = 3600) {
-  if (!r2Client) throw new Error("R2 not initialized");
+export async function deleteFile(key) {
+  if (!r2Client) {
+    const ok = initR2();
+    if (!ok) throw new Error("R2 client not initialized");
+  }
 
   try {
-    const command = new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-    });
-
-    const url = await getSignedUrl(r2Client, command, { expiresIn });
-    logger.info(`🔑 Generated signed URL for key="${key}"`);
-    return url;
+    await r2Client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
+    logger.info(`🗑️ R2 file deleted: ${key}`);
+    return true;
   } catch (err) {
-    logger.error(`❌ Failed to generate signed URL for key="${key}": ${err.message}`);
+    logger.error(`❌ Failed to delete R2 file: ${key}`, err?.message ?? err);
     throw err;
   }
 }
+
+/**
+ * Generate a signed URL for an existing R2 object
+ * @param {string} key
+ * @param {number} [expiresIn=3600]
+ */
+export async function getSignedUrlForKey(key, expiresIn = 3600) {
+  if (!r2Client) {
+    const ok = initR2();
+    if (!ok) throw new Error("R2 client not initialized");
+  }
+
+  try {
+    const signedUrl = await getSignedUrl(
+      r2Client,
+      new GetObjectCommand({ Bucket: bucket, Key: key }),
+      { expiresIn }
+    );
+    return signedUrl;
+  } catch (err) {
+    logger.error(`❌ Failed to generate signed URL for key="${key}":`, err?.message ?? err);
+    throw err;
+  }
+}
+
+/* --------------------------- Default Export --------------------------- */
+export default {
+  initR2,
+  uploadFile,
+  deleteFile,
+  getSignedUrlForKey,
+};

@@ -1,22 +1,56 @@
+// scripts/testR2Upload.js
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { initR2Uploader, uploadFileToR2 } from "../utils/r2Uploader.js";
+
+// -------------------------------
+// Load .env
+// -------------------------------
 dotenv.config();
+console.log("🔹 Loaded environment variables.");
 
-import r2 from "../utils/r2.js"; // make sure the path is correct
+// -------------------------------
+// Prepare test file
+// -------------------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const testFilePath = path.join(__dirname, "test-file.txt");
 
+if (!fs.existsSync(testFilePath)) {
+  fs.writeFileSync(testFilePath, "This is a test file for R2 upload.", "utf-8");
+  console.log(`✅ Created test file at ${testFilePath}`);
+}
+
+// -------------------------------
+// Main upload test
+// -------------------------------
 async function testUpload() {
   try {
-    const filePath = path.resolve("./test-file.txt");
-    fs.writeFileSync(filePath, "Hello Fahari R2 Test!"); // create a temporary file
+    // Initialize R2
+    const ok = initR2Uploader();
+    if (!ok) {
+      console.error("❌ R2 uploader not initialized. Check your .env vars.");
+      return;
+    }
+    console.log("✅ R2 uploader initialized.");
 
-    const key = `test/${Date.now()}-test-file.txt`;
-    const url = await r2.uploadFileToR2(fs.readFileSync(filePath), key, "text/plain");
+    // Read file
+    const fileBuffer = fs.readFileSync(testFilePath);
+    const fileName = path.basename(testFilePath);
+    const folder = "test-uploads";
+    const expirySeconds = 3600;
 
-    console.log("✅ Upload succeeded!");
-    console.log("Public URL:", url);
+    // Upload
+    const r2Key = await uploadFileToR2(fileBuffer, fileName, folder, expirySeconds);
+    console.log("📤 Upload successful!");
+    console.log("R2 Key:", r2Key);
 
-    fs.unlinkSync(filePath); // cleanup temp file
+    // Optional: generate a signed URL (if your uploader supports it)
+    // const signedUrl = generateR2SignedUrl(r2Key, expirySeconds);
+    // console.log("Signed URL:", signedUrl);
+
   } catch (err) {
     console.error("❌ Upload failed:", err);
   }

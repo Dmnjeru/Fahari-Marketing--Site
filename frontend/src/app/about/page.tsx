@@ -34,14 +34,14 @@ const AboutPage: React.FC = () => {
           <h2 className="text-3xl font-bold mb-6">Our Mission</h2>
           <p className="text-lg text-gray-700 leading-relaxed">
             At <span className="font-semibold">Fahari Yoghurt</span>, our mission
-            is to create high-quality, nutritious yoghurt that supports local
-            communities while bringing joy to families across Kenya and beyond.
+            is to  enable our consumers enjoy high quality dairy products 
+at affordable prices while providing value to our farmers, 
+suppliers and partners .
           </p>
           <h2 className="text-3xl font-bold mt-12 mb-6">Our Vision</h2>
           <p className="text-lg text-gray-700 leading-relaxed">
-            To be a leading yoghurt brand in Africa, known for innovation,
-            sustainability, and authenticity — always prioritizing health and
-            happiness in every spoonful.
+            To be the preferred dairy product manufacturer with a 
+reputation of high-quality products and incredible services.
           </p>
         </div>
         <div className="relative w-full h-96">
@@ -74,23 +74,23 @@ const AboutPage: React.FC = () => {
           {[
             {
               title: "Quality",
-              desc: "Only the best natural ingredients, carefully sourced and prepared.",
+              desc: "We provide outstanding products that deliver premium value to our customers",
             },
             {
               title: "Community",
               desc: "Supporting local farmers and creating opportunities in our region.",
             },
             {
-              title: "Sustainability",
-              desc: "Eco-friendly practices to protect our environment for future generations.",
+              title: "Incredible customer service ",
+              desc: "We strive to offer exemplary customer service to all our customers to allow them to have a wonderful experience with us.",
             },
             {
-              title: "Innovation",
-              desc: "Always evolving to create new flavors and healthier options.",
+              title: "Integrity",
+              desc: "We uphold the highest standard of integrity in all our operationsAlways evolving to create new flavors and healthier options.",
             },
             {
-              title: "Trust",
-              desc: "A brand families can rely on for consistency and integrity.",
+              title: "Stronger partnerships",
+              desc: "We develop strong partnerships to our customers, staff, suppliers and partners that make a difference in their live.",
             },
             {
               title: "Health",

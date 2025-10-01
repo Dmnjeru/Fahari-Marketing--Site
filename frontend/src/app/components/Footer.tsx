@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { FaWhatsapp, FaInstagram, FaFacebook, FaTiktok } from "react-icons/fa";
 
 export default function Footer() {
   const pathname = usePathname() || "/";
@@ -27,7 +28,7 @@ export default function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-200 mt-20">
       <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Logo + Description */}
+        {/* Brand Section */}
         <section aria-label="Fahari Yoghurt brand intro">
           <h3 className="text-xl font-bold text-[var(--brand-primary)]">
             Fahari<span className="text-pink-500">Yoghurt</span>
@@ -55,7 +56,11 @@ export default function Footer() {
                 <li key={n.href}>
                   <Link
                     href={n.href}
-                    className={`footer-link ${isActive ? "text-[var(--brand-primary)] font-semibold" : "hover:text-[var(--brand-primary)] transition"}`}
+                    className={`footer-link ${
+                      isActive
+                        ? "text-[var(--brand-primary)] font-semibold"
+                        : "hover:text-[var(--brand-primary)] transition"
+                    }`}
                     aria-current={isActive ? "page" : undefined}
                   >
                     {n.label}
@@ -66,27 +71,53 @@ export default function Footer() {
           </ul>
         </nav>
 
-        {/* Social + Newsletter */}
+        {/* Social Media + Newsletter */}
         <section aria-label="Social media and newsletter">
           <h4 className="font-semibold text-gray-800">Connect with us</h4>
-          <div className="flex gap-4 mt-3">
-            {/* WhatsApp */}
+          <div className="flex gap-4 mt-3 text-2xl text-gray-700">
             <a
               href="https://wa.me/+254740918689"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"
-              className="hover:opacity-90"
+              className="hover:text-green-500 transition"
             >
-              {/* SVG remains unchanged */}
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M21.7 4.3a11.9 11.9 0 00-16.9 0l-.1.1C1.9 7.9 1.6 12 4 15.5L3 21l5.6-1.1c2.8 1.5 6.3 1 8.6-1.2a11.9 11.9 0 000-16.9z" fill="#25D366"/>
-                <path d="M17.4 14.2c-.3-.2-1.8-.9-2.1-1-.3-.2-.5-.3-.7.2s-.8 1-1 1.2c-.2.3-.4.3-.7.1-1.5-.7-2.5-1.7-3.4-3-.3-.5.3-.5.8-1 0 0 .5-.5.3-1.2-.3-.7-.8-1-1.1-1.2-.3-.2-.8-.2-1.5-.2-.7 0-1.9.3-2.9 1.4-1 1.1-1 2.6-1 3.1s.3 1.1.6 1.6c.3.5.8 1.2 1.7 1.8s2 1.6 3.5 2.1c1.9.6 2.7.6 3.4.5.7-.2 2.1-.9 2.4-1.7.2-.7.2-1.3.1-1.6-.1-.3-.4-.4-.7-.6z" fill="#fff"/>
-              </svg>
+              <FaWhatsapp />
+            </a>
+            <a
+              href="https://www.instagram.com/fahariyoghurt/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="hover:text-pink-500 transition"
+            >
+              <FaInstagram />
+            </a>
+            <a
+              href="https://www.facebook.com/fahariyoghurt"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook"
+              className="hover:text-blue-600 transition"
+            >
+              <FaFacebook />
+            </a>
+            
+<a
+              href="https://www.tiktok.com/@fahari.yoghurt_dairy"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Tiktok"
+              className="hover:text-blue-600 transition"
+            >
+              <FaTiktok />
             </a>
 
-            {/* Instagram / TikTok / Facebook remain unchanged */}
-            {/* ... */}
+
+
+
+
+            
           </div>
 
           {/* Newsletter Form */}

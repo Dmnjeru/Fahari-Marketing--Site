@@ -1,3 +1,4 @@
+// backend/models/Contact.js
 import mongoose from "mongoose";
 
 const contactSchema = new mongoose.Schema(
@@ -26,10 +27,37 @@ const contactSchema = new mongoose.Schema(
       minlength: 10,
       maxlength: 500,
     },
+    products: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    notes: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    type: {
+      type: String,
+      enum: ["contact", "quote"],
+      default: "contact",
+    },
     status: {
       type: String,
       enum: ["new", "read", "responded"],
       default: "new",
+    },
+    ip: {
+      type: String,
+      default: "",
+    },
+    userAgent: {
+      type: String,
+      default: "",
+    },
+    receivedAt: {
+      type: Date,
+      default: Date.now,
     },
   },
   { timestamps: true }

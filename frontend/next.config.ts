@@ -1,8 +1,15 @@
-//frontend\next.config.ts
+// frontend/next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "i.ibb.co", // allow ibb.co image CDN
+      },
+    ],
+  },
 };
 
 export default nextConfig;

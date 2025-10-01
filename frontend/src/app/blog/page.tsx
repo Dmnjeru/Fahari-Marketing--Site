@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import BlogList from "./BlogList";
 
+export const revalidate = 60; // seconds - ISR
+
 export const metadata: Metadata = {
   title: "Blog — Fahari Yoghurt",
   description:
@@ -13,9 +15,10 @@ export const metadata: Metadata = {
       "Stay up-to-date with Fahari Yoghurt's news, tips, and stories from the farm to your table.",
     url: "https://faharidairies.co.ke/blog",
   },
+  alternates: {
+    canonical: "https://faharidairies.co.ke/blog",
+  },
 };
-
-export const revalidate = 60; // seconds - ISR
 
 type BlogItem = {
   _id?: string;
@@ -27,7 +30,8 @@ type BlogItem = {
   category?: string;
   tags?: string[];
   author?: string;
-  views?: number;
+  createdAt?: string;
+  // intentionally omitting `views` so public listing doesn't rely on it
 };
 
 type ApiResponse = {
@@ -46,23 +50,23 @@ const DEFAULT_LIMIT = 9;
 function buildApiUrl(page = 1, limit = DEFAULT_LIMIT) {
   const base = process.env.NEXT_PUBLIC_API_URL ?? "";
   const prefix = base.replace(/\/$/, "");
-  // If prefix is empty string, return relative path
   return `${prefix || ""}/api/blogs?page=${page}&limit=${limit}`;
 }
 
 /**
- * Server component page — MUST await searchParams before using it.
- *
- * Note: searchParams is awaited due to Next.js App Router semantics.
+ * Server component page
+ * - Does NOT expose or render `views` (by design for public listing)
+ * - Passes showViews={false} to BlogList so the client component won't render views
  */
 export default async function BlogPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[] | undefined> | Promise<Record<string, string | string[] | undefined> | undefined>;
+  searchParams?:
+    | Record<string, string | string[] | undefined>
+    | Promise<Record<string, string | string[] | undefined> | undefined>;
 }) {
-  // Await the searchParams proxy (required by Next.js)
+  // Next.js requires awaiting searchParams proxy
   const params = (await searchParams) ?? {};
-  // normalize page param (handle string | string[] | undefined)
   const rawPage = Array.isArray(params.page) ? params.page[0] : (params.page as string | undefined);
   const page = Math.max(1, Number(rawPage ?? "1") || 1);
   const limit = DEFAULT_LIMIT;
@@ -89,12 +93,43 @@ export default async function BlogPage({
 
   const blogs = api?.data ?? [];
 
+  // canonical per page: page 1 -> /blog, other pages -> /blog?page=N
+  const baseSite = "https://faharidairies.co.ke";
+  const canonicalHref = page <= 1 ? `${baseSite}/blog` : `${baseSite}/blog?page=${page}`;
+
+  // JSON-LD structured data for the blog collection (DO NOT include views)
+  const jsonLd =
+    blogs.length > 0
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Blog",
+          url: `${baseSite}/blog`,
+          name: "Fahari Yoghurt Blog",
+          description: "Stay up-to-date with Fahari Yoghurt's news, tips, and stories from the farm to your table.",
+          blogPost: blogs.map((b) => ({
+            "@type": "BlogPosting",
+            headline: b.title,
+            url: `${baseSite}/blog/${b.slug}`,
+            datePublished: b.createdAt || undefined,
+            image: b.image || undefined,
+            description: b.excerpt || undefined,
+            author: b.author || "Fahari Yoghurt",
+          })),
+        }
+      : null;
+
   return (
     <main className="min-h-screen bg-gray-50 px-6 py-12">
+      {/* canonical link for crawlers */}
+      <link rel="canonical" href={canonicalHref} />
+
+      {/* JSON-LD structured data (server-rendered) */}
+      {jsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      )}
+
       <header className="max-w-3xl mx-auto text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-          Fahari Yoghurt Blog
-        </h1>
+        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Fahari Yoghurt Blog</h1>
         <p className="text-gray-600 text-lg">
           Stay up-to-date with our latest news, healthy tips, and delicious recipes.
         </p>
@@ -113,8 +148,8 @@ export default async function BlogPage({
           <div className="text-center py-12 text-gray-600">No blog posts found.</div>
         ) : (
           <>
-            {/* BlogList is a client component; it will handle rendering cards and images */}
-            <BlogList blogs={blogs} />
+            {/* Pass explicit flag to client BlogList: showViews = false */}
+            <BlogList blogs={blogs} showViews={false} />
 
             {/* Pagination (server-rendered links) */}
             <div className="mt-8 flex items-center justify-center">
@@ -150,12 +185,19 @@ function Pagination({
 
   const pageNumbers = getPageNumbers(page, total);
 
+  const prevHref = showPrev ? `${basePath}?page=${page - 1}` : undefined;
+  const nextHref = showNext ? `${basePath}?page=${page + 1}` : undefined;
+
   return (
     <nav aria-label="Blog pagination" className="mt-8 flex items-center justify-center">
       <ul className="inline-flex items-center gap-2">
         <li>
           {showPrev ? (
-            <Link href={`${basePath}?page=${page - 1}`} className="px-3 py-2 rounded-md bg-white border text-gray-700 hover:bg-gray-50">
+            <Link
+              href={prevHref!}
+              rel="prev"
+              className="px-3 py-2 rounded-md bg-white border text-gray-700 hover:bg-gray-50"
+            >
               Previous
             </Link>
           ) : (
@@ -166,9 +208,14 @@ function Pagination({
         {pageNumbers.map((p) => (
           <li key={p}>
             {p === page ? (
-              <span className="px-3 py-2 rounded-md bg-green-600 text-white border">{p}</span>
+              <span aria-current="page" className="px-3 py-2 rounded-md bg-green-600 text-white border">
+                {p}
+              </span>
             ) : (
-              <Link href={`${basePath}?page=${p}`} className="px-3 py-2 rounded-md bg-white border text-gray-700 hover:bg-gray-50">
+              <Link
+                href={`${basePath}?page=${p}`}
+                className="px-3 py-2 rounded-md bg-white border text-gray-700 hover:bg-gray-50"
+              >
                 {p}
               </Link>
             )}
@@ -177,7 +224,11 @@ function Pagination({
 
         <li>
           {showNext ? (
-            <Link href={`${basePath}?page=${page + 1}`} className="px-3 py-2 rounded-md bg-white border text-gray-700 hover:bg-gray-50">
+            <Link
+              href={nextHref!}
+              rel="next"
+              className="px-3 py-2 rounded-md bg-white border text-gray-700 hover:bg-gray-50"
+            >
               Next
             </Link>
           ) : (
