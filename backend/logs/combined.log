@@ -71,3 +71,4 @@
 {"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:41:23"}
 {"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-01 19:41:23"}
 {"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 19:42:30"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-01 21:01:24"}
