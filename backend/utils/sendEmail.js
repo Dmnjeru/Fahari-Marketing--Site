@@ -1,179 +1,209 @@
 // backend/utils/sendEmail.js
+
 import nodemailer from "nodemailer";
-import logger from "../config/logger.js";
 import dotenv from "dotenv";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import logger from "../config/logger.js";
 
+/**
+ * Core resilient mailer
+ * - Uses Resend SMTP
+ * - Maintains transporter with verification
+ * - In-memory persistent-ish queue
+ * - Retries with exponential backoff
+ * - Auto re-init / health-check loop
+ */
+
+// ----------------- Load env (ensure backend/.env is used) -----------------
 const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: join(__dirname, "..", ".env") });
 
-// Load backend/.env if SMTP env not present
-if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-  try {
-    const envPath = join(__dirname, "..", ".env");
-    dotenv.config({ path: envPath });
-    logger.debug && logger.debug(`dotenv: attempted to load env from ${envPath}`);
-  } catch (err) {
-    // ignore; we'll validate below
-  }
-}
-
-const {
-  SMTP_HOST,
-  SMTP_PORT,
-  SMTP_USER,
-  SMTP_PASS,
-  SMTP_SECURE,
-  FROM_EMAIL,
-  NODE_ENV,
-  SMTP_CONNECTION_TIMEOUT_MS,
-} = process.env;
+// ----------------- Env -----------------
+const { FROM_EMAIL, NODE_ENV, RESEND_API_KEY } = process.env;
 
 const isProd = NODE_ENV === "production";
 const isDev = !isProd;
 
-// Validate required SMTP fields
-const missing = [];
-if (!SMTP_HOST) missing.push("SMTP_HOST");
-if (!SMTP_PORT) missing.push("SMTP_PORT");
-if (!SMTP_USER) missing.push("SMTP_USER");
-if (!SMTP_PASS) missing.push("SMTP_PASS");
-
-if (missing.length > 0) {
-  const msg = `Missing SMTP credentials: ${missing.join(", ")}.`;
-  if (isProd) {
-    logger.error(`❌ ${msg} Aborting startup (production requires SMTP).`);
-    throw new Error(msg);
-  } else {
-    logger.warn(`⚠️ ${msg} Running in dev/log-only mode — emails will be logged.`);
-  }
-}
-
+// ----------------- Transporter State -----------------
 let transporter = null;
+let smtpConfigured = false;
+let isVerifying = false;
 
-if (missing.length === 0) {
-  const portNum = Number(SMTP_PORT || 465);
-  const secure = SMTP_SECURE === "true" || portNum === 465;
+// ----------------- Queue State -----------------
+const emailQueue = [];
+let isProcessing = false;
 
-  transporter = nodemailer.createTransport({
-    host: SMTP_HOST,
-    port: portNum,
-    secure,
-    auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
-    },
-    tls: {
-      rejectUnauthorized: isProd, // enforce cert validity in prod
-    },
-    connectionTimeout: Number(SMTP_CONNECTION_TIMEOUT_MS ?? 30000),
-    greetingTimeout: 30000,
-    socketTimeout: 60000,
-    debug: isDev, // never enable debug in prod
-  });
+// Retry policy
+const MAX_RETRIES = 5;
+const BASE_RETRY_DELAY_MS = 5000; // base delay in ms
 
-  // Verify transporter on startup
-  (async () => {
-    try {
-      await transporter.verify();
-      logger.info(`✅ SMTP verified (host=${SMTP_HOST}, port=${portNum}, secure=${secure})`);
-    } catch (err) {
-      logger.error(`❌ SMTP verification failed: ${(err && err.message) || err}`);
-      if (isProd) {
-        throw new Error(`SMTP verification failed in production: ${(err && err.message) || err}`);
-      } else {
-        logger.warn("Continuing in dev mode despite SMTP verification failure (log-only).");
-        transporter = null;
-      }
-    }
-  })();
+// Health-check interval (try re-init when SMTP down)
+const HEALTH_CHECK_INTERVAL_MS = 30_000; // 30s
+
+// ----------------- Helper: sleep -----------------
+function sleep(ms) {
+  return new Promise((res) => setTimeout(res, ms));
 }
 
-/**
- * Retry wrapper for transient errors
- */
-async function attemptSend(mailOptions, retries = 3, delay = 5000) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      return info;
-    } catch (err) {
-      const code = err?.responseCode || err?.code;
-      logger.warn(`⚠️ Email send failed (attempt ${i + 1}/${retries}): ${err.message}`);
+// ----------------- Init transporter (Resend) -----------------
+export async function initMailer(force = false) {
+  if (transporter && smtpConfigured && !force) return transporter;
+  if (isVerifying) return transporter;
 
-      // Retry only on transient errors
-      if (code === 451 || code === "ETIMEDOUT" || code === "ECONNRESET") {
-        if (i < retries - 1) {
-          logger.info(`⏳ Retrying in ${delay / 1000}s...`);
-          await new Promise((res) => setTimeout(res, delay));
-          continue;
-        }
-      }
-      throw err;
-    }
-  }
-}
+  isVerifying = true;
 
-/**
- * Send an email (or log if transporter not configured)
- * @param {Object} opts
- * @param {string|string[]} opts.to
- * @param {string} opts.subject
- * @param {string} [opts.text]
- * @param {string} [opts.html]
- */
-export async function sendEmail({ to, subject, text, html } = {}) {
-  if (!to || !subject) {
-    throw new Error("sendEmail: 'to' and 'subject' are required");
+  if (!RESEND_API_KEY) {
+    const msg = "⚠️ Missing RESEND_API_KEY. Mailer running in log-only mode.";
+    logger.warn(msg);
+    smtpConfigured = false;
+    isVerifying = false;
+    return null;
   }
 
-  // Block sending to same noreply address
-  const noreply = FROM_EMAIL || SMTP_USER || "noreply@faharidairies.co.ke";
-  if (
-    (Array.isArray(to) && to.includes(noreply)) ||
-    (!Array.isArray(to) && to === noreply)
-  ) {
-    logger.error("❌ Attempted to send email TO noreply address — blocked.");
-    throw new Error("Invalid recipient: cannot send to noreply address.");
-  }
-
-  // If transporter not present
-  if (!transporter) {
-    logger.info("📧 [LOG ONLY] Email would be sent:", {
-      to,
-      subject,
-      from: noreply,
+  try {
+    transporter = nodemailer.createTransport({
+      host: "smtp.resend.com",
+      port: 587,
+      secure: false, // STARTTLS
+      auth: {
+        user: "resend",
+        pass: RESEND_API_KEY,
+      },
+      pool: true,
+      maxConnections: 5,
+      maxMessages: 100,
+      debug: isDev ? true : false,
+      connectionTimeout: 30_000,
     });
-    logger.debug && logger.debug("Email payload:", { text, html });
+
+    await transporter.verify();
+    smtpConfigured = true;
+    logger.info("✅ Resend SMTP verified successfully.");
+    
+    // kick queue if jobs are waiting
+    processQueue().catch((err) =>
+      logger.error("Queue processing error after init:", err)
+    );
+
+    return transporter;
+  } catch (err) {
+    smtpConfigured = false;
+    logger.error("❌ Resend SMTP verify failed:", err?.message || err);
+    return null;
+  } finally {
+    isVerifying = false;
+  }
+}
+
+// ----------------- Exponential backoff helper -----------------
+function getBackoffDelay(retries) {
+  const exp = BASE_RETRY_DELAY_MS * Math.pow(2, Math.max(0, retries - 1));
+  const jitter = Math.floor(Math.random() * BASE_RETRY_DELAY_MS * 0.25);
+  return exp + jitter;
+}
+
+// ----------------- Internal send attempt -----------------
+async function attemptSend({ to, subject, text, html, from }) {
+  if (!to || !subject) throw new Error("sendEmail requires 'to' and 'subject'");
+
+  if (!transporter || !smtpConfigured) {
+    await initMailer();
+  }
+
+  if (!smtpConfigured || !transporter) {
+    logger.info(`📧 [LOG-ONLY] to=${to}, subject=${subject}`);
+    logger.debug && logger.debug("Body:", { text, html });
     return { logged: true };
   }
 
   const mailOptions = {
-    from: `"Fahari Yoghurt" <${noreply}>`,
+    from: from ?? FROM_EMAIL ?? '"Fahari Yoghurt & Dairies" <noreply@faharidairies.co.ke>',
     to,
     subject,
-    text,
-    html,
+    text: text ?? "",
+    html: html ?? "",
   };
 
+  const info = await transporter.sendMail(mailOptions);
+  return info;
+}
+
+// ----------------- Queue processor -----------------
+async function processQueue() {
+  if (isProcessing) return;
+  isProcessing = true;
+
   try {
-    const info = await attemptSend(mailOptions, 3, 5000);
-    logger.info(`📧 Email sent: ${subject} → ${Array.isArray(to) ? to.join(",") : to} (id=${info.messageId})`);
+    while (emailQueue.length > 0) {
+      if (!smtpConfigured) {
+        await initMailer();
+        if (!smtpConfigured) {
+          logger.warn("SMTP not configured - pausing queue processing for 5s");
+          await sleep(5000);
+          continue;
+        }
+      }
 
-    if (isDev) {
-      const preview = nodemailer.getTestMessageUrl(info);
-      if (preview) logger.info("📨 Preview URL:", preview);
-      logger.debug && logger.debug("SMTP send info:", info);
+      const job = emailQueue.shift();
+      const { options, resolve, reject } = job;
+
+      try {
+        logger.info(
+          `📤 Sending email to=${options.to} subject="${options.subject}" (attempt ${job.retries + 1})`
+        );
+        const result = await attemptSend(options);
+        logger.info(`✅ Sent email to=${options.to} messageId=${result?.messageId ?? "N/A"}`);
+        resolve(result);
+      } catch (err) {
+        job.retries = (job.retries || 0) + 1;
+
+        const transient =
+          ["ETIMEDOUT", "ECONNRESET", "EENVELOPE", "ECONNREFUSED", "ENOTFOUND"].includes(err?.code) ||
+          (err?.responseCode && Number(err.responseCode) >= 400 && Number(err.responseCode) < 500);
+
+        if (transient && job.retries <= MAX_RETRIES) {
+          const delay = getBackoffDelay(job.retries);
+          logger.warn(
+            `⚠️ Transient send error (to=${options.to}) - retry in ${Math.round(delay / 1000)}s. error=${err?.message || err}`
+          );
+          setTimeout(() => {
+            emailQueue.push(job);
+            processQueue().catch((e) => logger.error("processQueue error on retry:", e));
+          }, delay);
+        } else {
+          logger.error(`❌ Permanent failure for to=${options.to} after ${job.retries} attempts: ${err?.message || err}`);
+          reject(err);
+        }
+      }
     }
-
-    return info;
-  } catch (err) {
-    logger.error(`❌ Failed to send email permanently: ${(err && err.message) || err}`, {
-      subject,
-      to,
-    });
-    throw err;
+  } catch (outerErr) {
+    logger.error("❌ processQueue unexpected error:", outerErr);
+  } finally {
+    isProcessing = false;
   }
 }
 
-export default sendEmail;
+// ----------------- Public API: sendEmail -----------------
+export function sendEmail(options) {
+  return new Promise((resolve, reject) => {
+    const job = { options, resolve, reject, retries: 0, enqueuedAt: Date.now() };
+    emailQueue.push(job);
+    processQueue().catch((err) => logger.error("processQueue error:", err));
+  });
+}
+
+export const send = (opts) => sendEmail(opts);
+
+// ----------------- Background health-check -----------------
+setInterval(async () => {
+  try {
+    if (!smtpConfigured) await initMailer();
+  } catch (err) {
+    logger.warn("Mailer health-check failed:", err?.message || err);
+  }
+}, HEALTH_CHECK_INTERVAL_MS);
+
+// ----------------- Export -----------------
+export default { sendEmail, send, initMailer };
+
