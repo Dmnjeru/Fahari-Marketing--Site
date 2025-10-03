@@ -1,5 +1,5 @@
-/* src/app/contact-page.tsx */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// src/app/contact-page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -9,76 +9,15 @@ import Image from "next/image";
 type LoadStatus = "loading" | "ok" | "error";
 type UnknownRecord = Record<string, unknown>;
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, ""); // ensures no trailing slash
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
 class HTTPError extends Error {
   details?: UnknownRecord;
 }
 
 /**
- * Debug-friendly fetch helper
- *
- * - Logs the final target URL so you can catch double `/api` problems
- * - Uses AbortController to avoid indefinite "Pending"
- * - Prints response status & some CORS-related headers for debugging
- * - Optionally include credentials if your backend needs cookies (uncomment)
+ * Contact / Quote page component
  */
-async function postJson<T = UnknownRecord>(url: string, body: unknown): Promise<T> {
-  // Build the final target:
-  const base = API_BASE;
-  const path = url.startsWith("/") ? url : `/${url}`;
-  const target = url.startsWith("http") ? url : `${base}${path}`;
-
-  console.info("[postJson] API_BASE:", API_BASE, "=> target:", target);
-
-  const controller = new AbortController();
-  const timeoutMs = 20000; // 20 seconds
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(target, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      // If your backend expects cookies for auth, uncomment the next line:
-      // credentials: "include",
-      body: JSON.stringify(body),
-      mode: "cors",
-      signal: controller.signal,
-    });
-
-    // Debug: log status & some CORS headers that browsers expose
-    console.info("[postJson] response status:", res.status, "ok:", res.ok);
-    console.info("[postJson] response headers (samples):", {
-      "Access-Control-Allow-Origin": res.headers.get("access-control-allow-origin"),
-      "Access-Control-Allow-Credentials": res.headers.get("access-control-allow-credentials"),
-    });
-
-    const text = await res.text();
-    let data: UnknownRecord = {};
-    try {
-      data = text ? JSON.parse(text) : {};
-    } catch {
-      data = { message: text || res.statusText || (res.ok ? "OK" : "Request failed") };
-    }
-
-    if (!res.ok) {
-      const err = new HTTPError((data && (data.message as string)) || `Request failed with status ${res.status}`);
-      err.details = data;
-      throw err;
-    }
-
-    return data as T;
-  } catch (err: unknown) {
-    if (err instanceof DOMException && err.name === "AbortError") {
-      throw new Error(`Request timed out after ${timeoutMs / 1000}s`);
-    }
-    throw err;
-  } finally {
-    clearTimeout(timeout);
-  }
-}
-
-/* ---------------------- Contact Page Component ---------------------- */
 export default function ContactPage() {
   /* ---------------------- Slideshow config ---------------------- */
   const slides = useMemo(
@@ -135,6 +74,32 @@ export default function ContactPage() {
     return () => window.clearInterval(id);
   }, [slides.length]);
 
+  /* ---------------------- Helpers ---------------------- */
+  async function postJson<T = UnknownRecord>(url: string, body: unknown): Promise<T> {
+    const target = url.startsWith("http") ? url : `${API_BASE}${url}`;
+    const res = await fetch(target, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const text = await res.text();
+    let data: UnknownRecord = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { message: text || res.statusText || (res.ok ? "OK" : "Request failed") };
+    }
+
+    if (!res.ok) {
+      const err = new HTTPError((data && (data.message as string)) || `Request failed with status ${res.status}`);
+      err.details = data;
+      throw err;
+    }
+
+    return data as T;
+  }
+
   /* ---------------------- Contact Form State ---------------------- */
   const [contactForm, setContactForm] = useState({
     name: "",
@@ -167,16 +132,13 @@ export default function ContactPage() {
     }
 
     setContactSubmitting(true);
-    console.info("[Contact] submitting contact form", contactForm);
     try {
       const payload = { ...contactForm, type: "contact" };
       const data = await postJson<{ success?: boolean; message?: string }>("/api/contact", payload);
-      console.info("[Contact] server response:", data);
       setContactSuccessMessage(data?.message ?? "Message sent — thank you!");
       setContactForm({ name: "", email: "", phone: "", message: "" });
       setTimeout(() => setContactSuccessMessage(null), 6000);
     } catch (err: unknown) {
-      console.error("[Contact] error while sending:", err);
       if (err instanceof HTTPError) {
         const details = err.details;
         // server validation errors commonly come back as { errors: [...] }
@@ -231,9 +193,11 @@ export default function ContactPage() {
     }
 
     setQuoteSubmitting(true);
-    console.info("[Quote] submitting quote form", quoteForm);
     try {
+      // Backend currently expects `message` (contact route validation).
+      // Build a `message` combining products + notes so the same handler accepts quote.
       const builtMessage = `Products/Request:\n${quoteForm.products.trim()}\n\nNotes:\n${quoteForm.notes?.trim() || "N/A"}`;
+
       const payload = {
         name: quoteForm.name,
         email: quoteForm.email,
@@ -241,16 +205,15 @@ export default function ContactPage() {
         products: quoteForm.products,
         notes: quoteForm.notes || "",
         type: "quote",
+        // include message to satisfy validation that requires message
         message: builtMessage,
       };
 
       const data = await postJson<{ success?: boolean; message?: string }>("/api/contact", payload);
-      console.info("[Quote] server response:", data);
       setQuoteSuccessMessage(data?.message ?? "Quote request submitted!");
       setQuoteForm({ name: "", email: "", phone: "", products: "", notes: "" });
       setTimeout(() => setQuoteSuccessMessage(null), 6000);
     } catch (err: unknown) {
-      console.error("[Quote] error while sending:", err);
       if (err instanceof HTTPError) {
         const details = err.details;
         const serverErrors = details?.errors;
