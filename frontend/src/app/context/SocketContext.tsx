@@ -19,7 +19,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // 👇 Connect to backend API (use .env var if available)
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "https://api.faharidairies.co.ke";
     const s = io(backendUrl, {
       transports: ["websocket"],
       withCredentials: true,

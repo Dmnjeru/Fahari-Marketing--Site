@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState, FormEvent } from "react";
 import axios, { AxiosError, type AxiosProgressEvent } from "axios";
 import type { Job } from "../types";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API = process.env.NEXT_PUBLIC_API_URL || "https://api.faharidairies.co.ke";
 
 type JobQuestion = {
   _id?: string;

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 // Revalidate this page every 60 seconds (ISR)
 export const revalidate = 60;
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API = process.env.NEXT_PUBLIC_API_URL || "https://api.faharidairies.co.ke";
 const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "careers@faharidairies.co.ke";
 
 async function fetchJobs(): Promise<Job[]> {
