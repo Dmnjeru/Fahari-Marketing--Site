@@ -1,74 +1,127 @@
-{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-01 18:28:29"}
-{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-01 18:28:29"}
-{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-01 18:28:31"}
-{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-01 18:28:31"}
-{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-01 18:28:31"}
-{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-01 18:28:31"}
-{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-01 18:28:31"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 18:28:31"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 18:28:31"}
-{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-01 18:28:31"}
-{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 18:30:39"}
-{"level":"info","message":"✅ Top blogs fetched successfully","timestamp":"2025-10-01 18:30:39"}
-{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 18:30:45"}
-{"level":"info","message":"✅ Top blogs fetched successfully","timestamp":"2025-10-01 18:30:46"}
-{"level":"info","message":"🗑️ Blog deleted: Edu (68dc324f1541979a46b9f562)","timestamp":"2025-10-01 18:30:53"}
-{"level":"error","message":"❌ Blog validation failed: Content must be at least 20 characters","timestamp":"2025-10-01 18:35:23"}
-{"level":"error","message":"❌ Blog validation failed: Content must be at least 20 characters","timestamp":"2025-10-01 18:40:21"}
-{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-01 19:05:38"}
-{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-01 19:05:48"}
-{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-01 19:05:49"}
-{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-01 19:05:50"}
-{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-01 19:05:51"}
-{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-01 19:05:51"}
-{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-01 19:05:51"}
-{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-01 19:05:51"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:05:51"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:05:51"}
-{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-01 19:05:51"}
-{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-01 19:06:08"}
-{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-01 19:06:16"}
-{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-01 19:06:17"}
-{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-01 19:06:19"}
-{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-01 19:06:19"}
-{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-01 19:06:19"}
-{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-01 19:06:19"}
-{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-01 19:06:19"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:06:19"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:06:19"}
-{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-01 19:06:19"}
-{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 19:07:14"}
-{"level":"info","message":"✅ Top blogs fetched successfully","timestamp":"2025-10-01 19:07:14"}
-{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 19:07:21"}
-{"level":"info","message":"✅ Top blogs fetched successfully","timestamp":"2025-10-01 19:07:21"}
-{"level":"info","message":"✅ New visitor connected: m33x5XY8Y0fZGSaoAAAC","timestamp":"2025-10-01 19:07:25"}
-{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 19:07:25"}
-{"level":"info","message":"❌ Visitor disconnected: m33x5XY8Y0fZGSaoAAAC","timestamp":"2025-10-01 19:07:39"}
-{"level":"info","message":"getAllApplications: returned 0 / 0","timestamp":"2025-10-01 19:07:39"}
-{"level":"info","message":"✅ New blog created: The Simple Secret to a Healthy Gut: Why Kenyan Yoghurt is Your Best Daily Snack (68dd52cf0d3f66d5d0315f2a)","timestamp":"2025-10-01 19:12:00"}
-{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 19:14:20"}
-{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 19:14:21"}
-{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-01 19:18:50"}
-{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-01 19:19:02"}
-{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-01 19:19:03"}
-{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-01 19:19:05"}
-{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-01 19:19:05"}
-{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-01 19:19:05"}
-{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-01 19:19:05"}
-{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-01 19:19:05"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:19:05"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:19:05"}
-{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-01 19:19:05"}
-{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-01 19:41:11"}
-{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-01 19:41:21"}
-{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-01 19:41:22"}
-{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-01 19:41:23"}
-{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-01 19:41:23"}
-{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-01 19:41:23"}
-{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-01 19:41:23"}
-{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-01 19:41:23"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:41:23"}
-{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 19:41:23"}
-{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-01 19:41:23"}
-{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 19:42:30"}
-{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-01 21:01:24"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-01 22:01:57"}
+{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-01 22:02:05"}
+{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-01 22:02:05"}
+{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-01 22:02:07"}
+{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-01 22:02:07"}
+{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-01 22:02:07"}
+{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-01 22:02:07"}
+{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-01 22:02:07"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 22:02:07"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 22:02:07"}
+{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-01 22:02:07"}
+{"err":"ValidationError: Contact validation failed: message: Path `message` (`APP_SECRET=GENERATED_RANDOM_KE...`, length 1089) is longer than the maximum allowed length (500).\n    at Document.invalidate (C:\\Users\\njeru\\fahari-marketing-site\\backend\\node_modules\\mongoose\\lib\\document.js:3358:32)\n    at C:\\Users\\njeru\\fahari-marketing-site\\backend\\node_modules\\mongoose\\lib\\document.js:3119:17\n    at C:\\Users\\njeru\\fahari-marketing-site\\backend\\node_modules\\mongoose\\lib\\schemaType.js:1416:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)","level":"error","message":"❌ submitContactForm error","timestamp":"2025-10-01 22:03:56"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-01 22:06:27"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<70200067-308e-cfc0-60e5-35c62ba61931@faharidairies.co.ke>","timestamp":"2025-10-01 22:06:28"}
+{"id":"68dd7bb32c90f66175b50d6e","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 22:06:28","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68dd7bb32c90f66175b50d6e","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-01 22:06:28"}
+{"level":"info","message":"📤 Sending email to=sales@faharidairies.co.ke subject=\"📩 Fahari — New Quote Request\" (attempt 1)","timestamp":"2025-10-01 22:09:25"}
+{"level":"info","message":"✅ Sent email to=sales@faharidairies.co.ke messageId=<1c58ffa3-00f3-a896-70b0-60bfee3f9025@faharidairies.co.ke>","timestamp":"2025-10-01 22:09:51"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-01 22:09:51"}
+{"id":"68dd7c652c90f66175b50d70","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 22:09:51","to":"sales@faharidairies.co.ke","type":"quote"}
+{"id":"68dd7c652c90f66175b50d70","ip":"::1","level":"info","message":"✅ Quote form saved","timestamp":"2025-10-01 22:09:51"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<27c8cfe8-e209-fe0d-5f68-d40e7e50771a@faharidairies.co.ke>","timestamp":"2025-10-01 22:09:52"}
+{"id":"68dd7c7a2c90f66175b50d72","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 22:09:52","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68dd7c7a2c90f66175b50d72","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-01 22:09:52"}
+{"level":"info","message":"📤 Sending email to=sales@faharidairies.co.ke subject=\"📩 Fahari — New Quote Request\" (attempt 1)","timestamp":"2025-10-01 22:10:04"}
+{"level":"info","message":"✅ Sent email to=sales@faharidairies.co.ke messageId=<c63a2b0c-08db-a664-fbcd-47524652779c@faharidairies.co.ke>","timestamp":"2025-10-01 22:10:04"}
+{"id":"68dd7c8c2c90f66175b50d74","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 22:10:04","to":"sales@faharidairies.co.ke","type":"quote"}
+{"id":"68dd7c8c2c90f66175b50d74","ip":"::1","level":"info","message":"✅ Quote form saved","timestamp":"2025-10-01 22:10:04"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:02"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:13"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:15"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:15"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:15"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:15"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:16"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:17"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:17"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:17"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:17"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:17"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:18"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:18"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:18"}
+{"level":"warn","message":"⚠️ Contact form rate limit exceeded by ::1","timestamp":"2025-10-01 22:14:18"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-01 22:14:24"}
+{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-01 22:14:30"}
+{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-01 22:14:30"}
+{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-01 22:14:31"}
+{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-01 22:14:32"}
+{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-01 22:14:32"}
+{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-01 22:14:32"}
+{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-01 22:14:32"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 22:14:32"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-01 22:14:32"}
+{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-01 22:14:32"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-01 22:15:48"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<b71fe506-b6fd-0f61-7e21-e7983349321c@faharidairies.co.ke>","timestamp":"2025-10-01 22:15:49"}
+{"id":"68dd7de4075a840b3ae91832","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 22:15:49","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68dd7de4075a840b3ae91832","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-01 22:15:49"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-01 22:26:50"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<b89c9155-da23-0e81-5743-22d43206379e@faharidairies.co.ke>","timestamp":"2025-10-01 22:27:11"}
+{"id":"68dd807a075a840b3ae91834","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 22:27:11","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68dd807a075a840b3ae91834","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-01 22:27:11"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-01 22:30:09"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<a50c7a6c-d3cf-df83-1600-8b554d908b78@faharidairies.co.ke>","timestamp":"2025-10-01 22:30:10"}
+{"id":"68dd8141075a840b3ae91836","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 22:30:10","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68dd8141075a840b3ae91836","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-01 22:30:10"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-01 22:36:40"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<e2c9ecd4-41b2-d7cf-332a-329b5a474f83@faharidairies.co.ke>","timestamp":"2025-10-01 22:36:41"}
+{"id":"68dd82c8075a840b3ae91838","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 22:36:41","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68dd82c8075a840b3ae91838","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-01 22:36:41"}
+{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 22:54:24"}
+{"level":"info","message":"getAllJobs: returned 1 / 1 (page 1, limit 20)","timestamp":"2025-10-01 22:54:24"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-01 23:07:43"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<b86317ef-60d0-bed6-33b6-605778094786@faharidairies.co.ke>","timestamp":"2025-10-01 23:07:44"}
+{"id":"68dd8a0f075a840b3ae9183e","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-01 23:07:44","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68dd8a0f075a840b3ae9183e","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-01 23:07:44"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-03 10:59:55"}
+{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-03 11:00:04"}
+{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-03 11:00:04"}
+{"level":"error","message":"❌ SMTP verification failed: getaddrinfo ENOTFOUND mail.faharidairies.co.ke","timestamp":"2025-10-03 11:00:04"}
+{"0":"E","1":"r","10":"P","100":" ","101":"f","102":"i","103":"l","104":"e","105":":","106":"/","107":"/","108":"/","109":"C","11":" ","110":":","111":"/","112":"U","113":"s","114":"e","115":"r","116":"s","117":"/","118":"n","119":"j","12":"v","120":"e","121":"r","122":"u","123":"/","124":"f","125":"a","126":"h","127":"a","128":"r","129":"i","13":"e","130":"-","131":"m","132":"a","133":"r","134":"k","135":"e","136":"t","137":"i","138":"n","139":"g","14":"r","140":"-","141":"s","142":"i","143":"t","144":"e","145":"/","146":"b","147":"a","148":"c","149":"k","15":"i","150":"e","151":"n","152":"d","153":"/","154":"u","155":"t","156":"i","157":"l","158":"s","159":"/","16":"f","160":"s","161":"e","162":"n","163":"d","164":"E","165":"m","166":"a","167":"i","168":"l","169":".","17":"i","170":"j","171":"s","172":":","173":"8","174":"3","175":":","176":"1","177":"5","18":"c","19":"a","2":"r","20":"t","21":"i","22":"o","23":"n","24":" ","25":"f","26":"a","27":"i","28":"l","29":"e","3":"o","30":"d","31":" ","32":"i","33":"n","34":" ","35":"p","36":"r","37":"o","38":"d","39":"u","4":"r","40":"c","41":"t","42":"i","43":"o","44":"n","45":":","46":" ","47":"g","48":"e","49":"t","5":":","50":"a","51":"d","52":"d","53":"r","54":"i","55":"n","56":"f","57":"o","58":" ","59":"E","6":" ","60":"N","61":"O","62":"T","63":"F","64":"O","65":"U","66":"N","67":"D","68":" ","69":"m","7":"S","70":"a","71":"i","72":"l","73":".","74":"f","75":"a","76":"h","77":"a","78":"r","79":"i","8":"M","80":"d","81":"a","82":"i","83":"r","84":"i","85":"e","86":"s","87":".","88":"c","89":"o","9":"T","90":".","91":"k","92":"e","93":"\n","94":" ","95":" ","96":" ","97":" ","98":"a","99":"t","level":"error","message":"Unhandled Rejection:","timestamp":"2025-10-03 11:00:04"}
+{"0":"g","1":"e","10":"o","11":" ","12":"E","13":"N","14":"O","15":"T","16":"F","17":"O","18":"U","19":"N","2":"t","20":"D","21":" ","22":"m","23":"a","24":"i","25":"l","26":".","27":"f","28":"a","29":"h","3":"a","30":"a","31":"r","32":"i","33":"d","34":"a","35":"i","36":"r","37":"i","38":"e","39":"s","4":"d","40":".","41":"c","42":"o","43":".","44":"k","45":"e","5":"d","6":"r","7":"i","8":"n","9":"f","level":"error","message":"❌ SMTP verify failed:","timestamp":"2025-10-03 11:00:04"}
+{"level":"warn","message":"⚠️ Mailer init returned null (SMTP may be unconfigured).","timestamp":"2025-10-03 11:00:04"}
+{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-03 11:00:04"}
+{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-03 11:00:04"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 11:00:04"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 11:00:04"}
+{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-03 11:00:04"}
+{"0":"g","1":"e","10":"o","11":" ","12":"E","13":"N","14":"O","15":"T","16":"F","17":"O","18":"U","19":"N","2":"t","20":"D","21":" ","22":"m","23":"a","24":"i","25":"l","26":".","27":"f","28":"a","29":"h","3":"a","30":"a","31":"r","32":"i","33":"d","34":"a","35":"i","36":"r","37":"i","38":"e","39":"s","4":"d","40":".","41":"c","42":"o","43":".","44":"k","45":"e","5":"d","6":"r","7":"i","8":"n","9":"f","level":"error","message":"❌ SMTP verify failed:","timestamp":"2025-10-03 11:00:31"}
+{"0":"g","1":"e","10":"o","11":" ","12":"E","13":"N","14":"O","15":"T","16":"F","17":"O","18":"U","19":"N","2":"t","20":"D","21":" ","22":"m","23":"a","24":"i","25":"l","26":".","27":"f","28":"a","29":"h","3":"a","30":"a","31":"r","32":"i","33":"d","34":"a","35":"i","36":"r","37":"i","38":"e","39":"s","4":"d","40":".","41":"c","42":"o","43":".","44":"k","45":"e","5":"d","6":"r","7":"i","8":"n","9":"f","level":"error","message":"❌ SMTP verify failed:","timestamp":"2025-10-03 11:01:01"}
+{"0":"g","1":"e","10":"o","11":" ","12":"E","13":"N","14":"O","15":"T","16":"F","17":"O","18":"U","19":"N","2":"t","20":"D","21":" ","22":"m","23":"a","24":"i","25":"l","26":".","27":"f","28":"a","29":"h","3":"a","30":"a","31":"r","32":"i","33":"d","34":"a","35":"i","36":"r","37":"i","38":"e","39":"s","4":"d","40":".","41":"c","42":"o","43":".","44":"k","45":"e","5":"d","6":"r","7":"i","8":"n","9":"f","level":"error","message":"❌ SMTP verify failed:","timestamp":"2025-10-03 11:01:31"}
+{"0":"g","1":"e","10":"o","11":" ","12":"E","13":"N","14":"O","15":"T","16":"F","17":"O","18":"U","19":"N","2":"t","20":"D","21":" ","22":"m","23":"a","24":"i","25":"l","26":".","27":"f","28":"a","29":"h","3":"a","30":"a","31":"r","32":"i","33":"d","34":"a","35":"i","36":"r","37":"i","38":"e","39":"s","4":"d","40":".","41":"c","42":"o","43":".","44":"k","45":"e","5":"d","6":"r","7":"i","8":"n","9":"f","level":"error","message":"❌ SMTP verify failed:","timestamp":"2025-10-03 11:02:01"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-03 11:02:38"}
+{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-03 11:14:02"}
+{"level":"error","message":"❌ SMTP verification failed: getaddrinfo ENOTFOUND mail.faharidairies.co.ke","timestamp":"2025-10-03 11:14:02"}
+{"0":"E","1":"r","10":"P","100":" ","101":"f","102":"i","103":"l","104":"e","105":":","106":"/","107":"/","108":"/","109":"C","11":" ","110":":","111":"/","112":"U","113":"s","114":"e","115":"r","116":"s","117":"/","118":"n","119":"j","12":"v","120":"e","121":"r","122":"u","123":"/","124":"f","125":"a","126":"h","127":"a","128":"r","129":"i","13":"e","130":"-","131":"m","132":"a","133":"r","134":"k","135":"e","136":"t","137":"i","138":"n","139":"g","14":"r","140":"-","141":"s","142":"i","143":"t","144":"e","145":"/","146":"b","147":"a","148":"c","149":"k","15":"i","150":"e","151":"n","152":"d","153":"/","154":"u","155":"t","156":"i","157":"l","158":"s","159":"/","16":"f","160":"s","161":"e","162":"n","163":"d","164":"E","165":"m","166":"a","167":"i","168":"l","169":".","17":"i","170":"j","171":"s","172":":","173":"8","174":"3","175":":","176":"1","177":"5","18":"c","19":"a","2":"r","20":"t","21":"i","22":"o","23":"n","24":" ","25":"f","26":"a","27":"i","28":"l","29":"e","3":"o","30":"d","31":" ","32":"i","33":"n","34":" ","35":"p","36":"r","37":"o","38":"d","39":"u","4":"r","40":"c","41":"t","42":"i","43":"o","44":"n","45":":","46":" ","47":"g","48":"e","49":"t","5":":","50":"a","51":"d","52":"d","53":"r","54":"i","55":"n","56":"f","57":"o","58":" ","59":"E","6":" ","60":"N","61":"O","62":"T","63":"F","64":"O","65":"U","66":"N","67":"D","68":" ","69":"m","7":"S","70":"a","71":"i","72":"l","73":".","74":"f","75":"a","76":"h","77":"a","78":"r","79":"i","8":"M","80":"d","81":"a","82":"i","83":"r","84":"i","85":"e","86":"s","87":".","88":"c","89":"o","9":"T","90":".","91":"k","92":"e","93":"\n","94":" ","95":" ","96":" ","97":" ","98":"a","99":"t","level":"error","message":"Unhandled Rejection:","timestamp":"2025-10-03 11:14:02"}
+{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-03 11:14:02"}
+{"0":"g","1":"e","10":"o","11":" ","12":"E","13":"N","14":"O","15":"T","16":"F","17":"O","18":"U","19":"N","2":"t","20":"D","21":" ","22":"m","23":"a","24":"i","25":"l","26":".","27":"f","28":"a","29":"h","3":"a","30":"a","31":"r","32":"i","33":"d","34":"a","35":"i","36":"r","37":"i","38":"e","39":"s","4":"d","40":".","41":"c","42":"o","43":".","44":"k","45":"e","5":"d","6":"r","7":"i","8":"n","9":"f","level":"error","message":"❌ SMTP verify failed:","timestamp":"2025-10-03 11:14:02"}
+{"level":"warn","message":"⚠️ Mailer init returned null (SMTP may be unconfigured).","timestamp":"2025-10-03 11:14:02"}
+{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-03 11:14:02"}
+{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-03 11:14:02"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 11:14:02"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 11:14:02"}
+{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-03 11:14:02"}
+{"0":"g","1":"e","10":"o","11":" ","12":"E","13":"N","14":"O","15":"T","16":"F","17":"O","18":"U","19":"N","2":"t","20":"D","21":" ","22":"m","23":"a","24":"i","25":"l","26":".","27":"f","28":"a","29":"h","3":"a","30":"a","31":"r","32":"i","33":"d","34":"a","35":"i","36":"r","37":"i","38":"e","39":"s","4":"d","40":".","41":"c","42":"o","43":".","44":"k","45":"e","5":"d","6":"r","7":"i","8":"n","9":"f","level":"error","message":"❌ SMTP verify failed:","timestamp":"2025-10-03 11:14:30"}
+{"0":"g","1":"e","10":"o","11":" ","12":"E","13":"N","14":"O","15":"T","16":"F","17":"O","18":"U","19":"N","2":"t","20":"D","21":" ","22":"m","23":"a","24":"i","25":"l","26":".","27":"f","28":"a","29":"h","3":"a","30":"a","31":"r","32":"i","33":"d","34":"a","35":"i","36":"r","37":"i","38":"e","39":"s","4":"d","40":".","41":"c","42":"o","43":".","44":"k","45":"e","5":"d","6":"r","7":"i","8":"n","9":"f","level":"error","message":"❌ SMTP verify failed:","timestamp":"2025-10-03 11:15:00"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-03 11:15:10"}
+{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-03 11:36:29"}
+{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-03 11:36:31"}
+{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-03 11:36:31"}
+{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-03 11:36:32"}
+{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-03 11:36:32"}
+{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-03 11:36:32"}
+{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-03 11:36:32"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 11:36:32"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 11:36:32"}
+{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-03 11:36:32"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-03 11:42:35"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<a49017ec-4dac-a9b7-1080-4c0f5cbb6043@faharidairies.co.ke>","timestamp":"2025-10-03 11:42:36"}
+{"id":"68df8c7aaa480d39842b8441","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-03 11:42:36","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68df8c7aaa480d39842b8441","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-03 11:42:36"}
+{"err":"ValidationError: Contact validation failed: message: Path `message` (`Products/Request:\n🔑 What I’d ...`, length 621) is longer than the maximum allowed length (500).\n    at Document.invalidate (C:\\Users\\njeru\\fahari-marketing-site\\backend\\node_modules\\mongoose\\lib\\document.js:3358:32)\n    at C:\\Users\\njeru\\fahari-marketing-site\\backend\\node_modules\\mongoose\\lib\\document.js:3119:17\n    at C:\\Users\\njeru\\fahari-marketing-site\\backend\\node_modules\\mongoose\\lib\\schemaType.js:1416:9\n    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)","level":"error","message":"❌ submitContactForm error","timestamp":"2025-10-03 11:45:13"}
+{"level":"info","message":"📤 Sending email to=sales@faharidairies.co.ke subject=\"📩 Fahari — New Quote Request\" (attempt 1)","timestamp":"2025-10-03 11:45:51"}
+{"level":"info","message":"✅ Sent email to=sales@faharidairies.co.ke messageId=<b592e0cc-21a5-38a6-cd72-e7388bcaf484@faharidairies.co.ke>","timestamp":"2025-10-03 11:45:52"}
+{"id":"68df8d3faa480d39842b8444","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-03 11:45:52","to":"sales@faharidairies.co.ke","type":"quote"}
+{"id":"68df8d3faa480d39842b8444","ip":"::1","level":"info","message":"✅ Quote form saved","timestamp":"2025-10-03 11:45:52"}

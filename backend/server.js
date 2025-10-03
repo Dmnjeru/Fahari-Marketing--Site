@@ -173,9 +173,12 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 const allowedOrigins = [
   process.env.FRONTEND_URL ?? "https://faharidairies.co.ke",
   "https://www.faharidairies.co.ke",
+  "https://fahariyoghurt.co.ke",
+  "https://www.fahariyoghurt.co.ke",
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ];
+
 const allowedHeaders = [
   "Content-Type",
   "Authorization",

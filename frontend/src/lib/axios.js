@@ -1,4 +1,3 @@
-// frontend/src/lib/axios.js
 import axios from "axios";
 
 // -----------------------------------------------------------------------------
@@ -96,8 +95,9 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        // ✅ FIX: refresh URL without duplicating /api
         const refreshResp = await axios.post(
-          `${API_BASE}/api/admin/refresh`, // ✅ adjust if backend differs
+          `${API_BASE}/admin/refresh`,
           {},
           { withCredentials: true }
         );
