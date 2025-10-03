@@ -14,7 +14,7 @@ dotenv.config({ path: join(__dirname, ".env") });
 
     const result = await sendEmail({
       to: process.env.TEST_EMAIL || "njerudennis86@gmail.com",
-      subject: "✅ Test Email from Resend",
+      subject: "✅ Test Email from Resend Fahari Yoghurt & Dairies <info@faharidairies.co.ke>   ",
       text: "This is a test email sent via Resend SMTP from Node.js.",
       html: "<p>This is a test email sent via <b>Resend SMTP</b> from Node.js.</p>",
       from: process.env.FROM_EMAIL, // ensures verified domain

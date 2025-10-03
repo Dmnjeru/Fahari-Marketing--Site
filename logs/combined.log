@@ -4,3 +4,27 @@
 {"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:44:16"}
 {"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 1)","timestamp":"2025-10-03 14:44:16"}
 {"level":"info","message":"✅ Sent email to=njerudennis86@gmail.com messageId=<c19ed714-4278-3ca5-3a79-51e04a296360@faharidairies.co.ke>","timestamp":"2025-10-03 14:44:19"}
+{"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:55:50"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 1)","timestamp":"2025-10-03 14:55:50"}
+{"level":"warn","message":"⚠️ Transient send error (to=njerudennis86@gmail.com) - retry in 5s. error=Mail command failed: 550 Invalid `from` field. The email address needs to follow the `email@example.com` or `Name <email@example.com>` format.","timestamp":"2025-10-03 14:55:52"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 2)","timestamp":"2025-10-03 14:55:58"}
+{"level":"warn","message":"⚠️ Transient send error (to=njerudennis86@gmail.com) - retry in 10s. error=Mail command failed: 550 Invalid `from` field. The email address needs to follow the `email@example.com` or `Name <email@example.com>` format.","timestamp":"2025-10-03 14:56:00"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 3)","timestamp":"2025-10-03 14:56:10"}
+{"level":"warn","message":"⚠️ Transient send error (to=njerudennis86@gmail.com) - retry in 20s. error=Mail command failed: 550 Invalid `from` field. The email address needs to follow the `email@example.com` or `Name <email@example.com>` format.","timestamp":"2025-10-03 14:56:13"}
+{"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:56:42"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 1)","timestamp":"2025-10-03 14:56:42"}
+{"level":"warn","message":"⚠️ Transient send error (to=njerudennis86@gmail.com) - retry in 5s. error=Mail command failed: 501 Error: Bad sender address syntax","timestamp":"2025-10-03 14:56:45"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 2)","timestamp":"2025-10-03 14:56:50"}
+{"level":"warn","message":"⚠️ Transient send error (to=njerudennis86@gmail.com) - retry in 11s. error=Mail command failed: 501 Error: Bad sender address syntax","timestamp":"2025-10-03 14:56:52"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 3)","timestamp":"2025-10-03 14:57:03"}
+{"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:57:10"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 1)","timestamp":"2025-10-03 14:57:10"}
+{"level":"info","message":"✅ Sent email to=njerudennis86@gmail.com messageId=<3aae67a0-30d4-ced6-8223-7ed49410ed0f@faharidairies.co.ke>","timestamp":"2025-10-03 14:57:13"}
+{"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:57:43"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 1)","timestamp":"2025-10-03 14:57:43"}
+{"level":"warn","message":"⚠️ Transient send error (to=njerudennis86@gmail.com) - retry in 5s. error=Mail command failed: 501 Error: Bad sender address syntax","timestamp":"2025-10-03 14:57:45"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 2)","timestamp":"2025-10-03 14:57:51"}
+{"level":"warn","message":"⚠️ Transient send error (to=njerudennis86@gmail.com) - retry in 11s. error=Mail command failed: 501 Error: Bad sender address syntax","timestamp":"2025-10-03 14:57:53"}
+{"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:58:06"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 1)","timestamp":"2025-10-03 14:58:06"}
+{"level":"info","message":"✅ Sent email to=njerudennis86@gmail.com messageId=<8354902d-63ae-e4a8-0f44-d061808eb309@faharidairies.co.ke>","timestamp":"2025-10-03 14:58:10"}

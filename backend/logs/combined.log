@@ -154,3 +154,18 @@
 {"id":"68df99f008bc3f438c6e4389","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-03 12:40:01","to":"info@faharidairies.co.ke","type":"contact"}
 {"id":"68df99f008bc3f438c6e4389","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-03 12:40:01"}
 {"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-03 14:45:51"}
+{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-03 14:47:57"}
+{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-03 14:48:00"}
+{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-03 14:48:00"}
+{"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:48:02"}
+{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-03 14:48:02"}
+{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-03 14:48:02"}
+{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-03 14:48:02"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 14:48:02"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 14:48:02"}
+{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-03 14:48:02"}
+{"level":"info","message":"📤 Sending email to=info@faharidairies.co.ke subject=\"📩 Fahari — New Contact Message\" (attempt 1)","timestamp":"2025-10-03 14:50:09"}
+{"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<33766e4f-9ad0-a04e-ec59-f40481fc5ed2@faharidairies.co.ke>","timestamp":"2025-10-03 14:50:12"}
+{"id":"68dfb871dd55ee64063a94e3","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-03 14:50:12","to":"info@faharidairies.co.ke","type":"contact"}
+{"id":"68dfb871dd55ee64063a94e3","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-03 14:50:12"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-03 15:04:59"}
