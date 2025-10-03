@@ -4,7 +4,7 @@ import { sendEmail } from "./utils/mailer.js";
   try {
     console.log("📨 Sending test email...");
     const result = await sendEmail({
-      to: "yourpersonal@gmail.com", // your email
+      to: "njerudennis86@gmail.com", // your email
       subject: "✅ SMTP Test from Render",
       text: "This is a test email directly from smtp-test.js",
     });
