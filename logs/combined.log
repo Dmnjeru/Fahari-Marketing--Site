@@ -1,0 +1,6 @@
+{"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:43:12"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 1)","timestamp":"2025-10-03 14:43:12"}
+{"level":"info","message":"✅ Sent email to=njerudennis86@gmail.com messageId=<39ec8b33-a01f-560d-9ae4-926149820a0a@faharidairies.co.ke>","timestamp":"2025-10-03 14:43:15"}
+{"level":"info","message":"✅ Resend SMTP verified successfully.","timestamp":"2025-10-03 14:44:16"}
+{"level":"info","message":"📤 Sending email to=njerudennis86@gmail.com subject=\"✅ Test Email from Resend\" (attempt 1)","timestamp":"2025-10-03 14:44:16"}
+{"level":"info","message":"✅ Sent email to=njerudennis86@gmail.com messageId=<c19ed714-4278-3ca5-3a79-51e04a296360@faharidairies.co.ke>","timestamp":"2025-10-03 14:44:19"}

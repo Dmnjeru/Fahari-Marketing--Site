@@ -153,3 +153,4 @@
 {"level":"info","message":"✅ Sent email to=info@faharidairies.co.ke messageId=<1d379483-e13b-2968-69fe-d9549bceb1de@faharidairies.co.ke>","timestamp":"2025-10-03 12:40:01"}
 {"id":"68df99f008bc3f438c6e4389","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-03 12:40:01","to":"info@faharidairies.co.ke","type":"contact"}
 {"id":"68df99f008bc3f438c6e4389","ip":"::1","level":"info","message":"✅ Contact form saved","timestamp":"2025-10-03 12:40:01"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-03 14:45:51"}

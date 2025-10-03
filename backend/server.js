@@ -8,7 +8,7 @@ import { fileURLToPath } from "url";
 import { dirname, join, resolve } from "path";
 import fs from "fs";
 import dotenv from "dotenv";
-import smtpTestRoute from "./smtp-test.js";
+
 
 // -------------------------------
 // Compute __filename / __dirname
@@ -235,8 +235,7 @@ app.use("/api/careers", careersRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
-// ✅ NEW TEST ROUTE
-app.use("/api", smtpTestRoute);
+
 // Health check
 app.get("/api/health", (req, res) =>
   res.status(200).json({

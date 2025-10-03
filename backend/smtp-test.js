@@ -1,37 +1,30 @@
-import express from "express";
+// Step 6: backend/smtp-test.js
 import { sendEmail } from "./utils/mailer.js";
+import dotenv from "dotenv";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
-const router = express.Router();
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: join(__dirname, ".env") });
 
-/**
- * GET /api/smtp-test
- * Triggers a test email using your existing sendEmail() helper
- */
-router.get("/smtp-test", async (req, res) => {
+// ----------------- Test Email -----------------
+(async () => {
   try {
-    console.log("📨 Sending test email...");
+    console.log("📨 Sending test email via Resend SMTP...");
 
     const result = await sendEmail({
-      to: "njerudennis86@gmail.com", // replace with your test email
-      subject: "✅ SMTP Test from Render",
-      text: "This is a test email triggered via /api/smtp-test",
+      to: process.env.TEST_EMAIL || "njerudennis86@gmail.com",
+      subject: "✅ Test Email from Resend",
+      text: "This is a test email sent via Resend SMTP from Node.js.",
+      html: "<p>This is a test email sent via <b>Resend SMTP</b> from Node.js.</p>",
+      from: process.env.FROM_EMAIL, // ensures verified domain
     });
 
-    console.log("✅ Email sent:", result);
-
-    res.json({
-      success: true,
-      message: "✅ Email sent successfully",
-      result,
-    });
+    console.log("✅ Email sent successfully!");
+    console.log("MessageId:", result?.messageId ?? "N/A");
+    process.exit(0);
   } catch (err) {
-    console.error("❌ SMTP failed:", err);
-    res.status(500).json({
-      success: false,
-      message: "❌ SMTP failed",
-      error: err.message,
-    });
+    console.error("❌ Failed to send email:", err?.message || err);
+    process.exit(1);
   }
-});
-
-export default router;
+})();
