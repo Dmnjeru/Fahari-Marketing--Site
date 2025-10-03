@@ -175,9 +175,12 @@ const allowedOrigins = [
   "https://www.faharidairies.co.ke",
   "https://fahariyoghurt.co.ke",
   "https://www.fahariyoghurt.co.ke",
+  "https://api.faharidairies.co.ke",   // <--- ADD
+  "https://api.fahariyoghurt.co.ke",   // <--- ADD
   "http://localhost:3000",
   "http://127.0.0.1:3000",
 ];
+
 
 const allowedHeaders = [
   "Content-Type",

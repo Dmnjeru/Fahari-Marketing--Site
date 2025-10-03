@@ -95,9 +95,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // ✅ FIX: refresh URL without duplicating /api
         const refreshResp = await axios.post(
-          `${API_BASE}/admin/refresh`,
+          `${API_BASE}/api/admin/refresh`, // ✅ adjust if backend differs
           {},
           { withCredentials: true }
         );

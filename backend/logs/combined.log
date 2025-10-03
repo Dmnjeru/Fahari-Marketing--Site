@@ -125,3 +125,15 @@
 {"level":"info","message":"✅ Sent email to=sales@faharidairies.co.ke messageId=<b592e0cc-21a5-38a6-cd72-e7388bcaf484@faharidairies.co.ke>","timestamp":"2025-10-03 11:45:52"}
 {"id":"68df8d3faa480d39842b8444","level":"info","message":"📧 Contact email routed","timestamp":"2025-10-03 11:45:52","to":"sales@faharidairies.co.ke","type":"quote"}
 {"id":"68df8d3faa480d39842b8444","ip":"::1","level":"info","message":"✅ Quote form saved","timestamp":"2025-10-03 11:45:52"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-03 12:27:57"}
+{"level":"info","message":"✅ R2 uploader initialized (bucket=\"fahari-careers\", endpoint=\"https://758dd6cb467486f219841939d8231147.r2.cloudflarestorage.com\")","timestamp":"2025-10-03 12:28:04"}
+{"level":"info","message":"✅ SMTP verified (host=mail.faharidairies.co.ke, port=465, secure=true)","timestamp":"2025-10-03 12:28:05"}
+{"level":"info","message":"✅ MongoDB connected (connectDB executed).","timestamp":"2025-10-03 12:28:07"}
+{"level":"info","message":"✅ SMTP verified: host=mail.faharidairies.co.ke, port=465, secure=true","timestamp":"2025-10-03 12:28:07"}
+{"level":"info","message":"✅ Mailer initialized","timestamp":"2025-10-03 12:28:07"}
+{"level":"info","message":"✅ Cloudflare R2 uploader initialized","timestamp":"2025-10-03 12:28:07"}
+{"level":"info","message":"⚙️ trust proxy set to: loopback","timestamp":"2025-10-03 12:28:07"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 12:28:07"}
+{"level":"info","message":"⚡ Real-time Socket.IO server initialized","timestamp":"2025-10-03 12:28:07"}
+{"level":"info","message":"🚀 Server running in production mode on port 5000","timestamp":"2025-10-03 12:28:07"}
+{"level":"info","message":"⚠️ Received SIGINT. Shutting down gracefully...","timestamp":"2025-10-03 12:33:10"}
