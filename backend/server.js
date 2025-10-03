@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import { dirname, join, resolve } from "path";
 import fs from "fs";
 import dotenv from "dotenv";
+import testEmailRoute from "./routes/testEmailRoute.js";
 
 
 // -------------------------------
@@ -235,7 +236,7 @@ app.use("/api/careers", careersRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/blogs", blogRoutes);
-
+app.use("/api", testEmailRoute);
 // Health check
 app.get("/api/health", (req, res) =>
   res.status(200).json({
